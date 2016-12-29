@@ -1,9 +1,11 @@
 'use strict';
 
+const debug = require('debug');
 const dgram = require('dgram');
 const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
+const logError = debug('error');
 const {
     secret,
     mongo
@@ -13,7 +15,8 @@ const {
 /* initialize database */
 mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
 mongoose.connection.on('error', () => {
-    throw new Error(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
+    const msg = `unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`;
+    logError(new Error(msg));
 });
 
 const models = glob.sync('./models/*.js');
