@@ -1,0 +1,8 @@
+{
+    "secret": "KYjFQP3BYDXS85k4",
+    "mongo": {
+        "host": "localhost",
+        "port": 27017,
+        "database": "radius"
+    }
+}

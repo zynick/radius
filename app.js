@@ -1,50 +1,38 @@
 'use strict';
 
 const dgram = require('dgram');
+const glob = require('glob');
+const mongoose = require('mongoose');
 const radius = require('radius');
+const {
+    secret,
+    mongo
+} = require('./config/config.json');
 
-const GLOBAL_SECRET = 'KYjFQP3BYDXS85k4';
 
-// RADIUS authentication messages
-const server1812 = dgram.createSocket('udp4');
-server1812.on('error', (err) => {
-    console.log(`server1812 error:\n${err.stack}`);
-    server1812.close();
+/* initialize database */
+mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
+mongoose.connection.on('error', () => {
+    throw new Error(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
 });
 
-server1812.on('message', (msg, rinfo) => {
-    console.log(`server1812 got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-
-    const decoded = radius.decode({ packet: msg, secret: GLOBAL_SECRET });
-    console.log(`decoded: ${JSON.stringify(decoded, null, 2)}`);
+const models = glob.sync('./models/*.js');
+models.forEach((model) => {
+    require(model);
 });
 
-server1812.on('listening', () => {
-    var address = server1812.address();
-    console.log(`server1812 listening ${address.address}:${address.port}`);
-});
 
-server1812.bind(1812);
+/* start authentication server */
+const authServer = require('./authServer.js')(secret);
 
-
-// RADIUS accounting messages
-const server1813 = dgram.createSocket('udp4');
-server1813.on('error', (err) => {
-    console.log(`server1813 error:\n${err.stack}`);
-    server1813.close();
-});
-
-server1813.on('message', (msg, rinfo) => {
-    console.log(`server1813 got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-});
-
-server1813.on('listening', () => {
-    var address = server1813.address();
-    console.log(`server1813 listening ${address.address}:${address.port}`);
-});
-
-server1813.bind(1813);
+/* start accounting  server */
+const acctServer = require('./acctServer.js');
 
 
 
-console.log('hi');
+
+// const radcheck = mongoose.model('radcheck');
+// radcheck.findOne({}, (err, result) => {
+//     console.log(err);
+//     console.log(result);
+// });

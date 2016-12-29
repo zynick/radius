@@ -4,7 +4,7 @@ const server = dgram.createSocket('udp4');
 
 const secret = 'KYjFQP3BYDXS85k4';
 
-server.on('message', function(msg, rinfo) {
+server.on('message', (msg, rinfo) => {
     let code, username, password, packet;
     packet = radius.decode({
         packet: msg,
@@ -34,14 +34,14 @@ server.on('message', function(msg, rinfo) {
     });
 
     console.log('Sending ' + code + ' for user ' + username);
-    server.send(response, 0, response.length, rinfo.port, rinfo.address, function(err, bytes) {
+    server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
         if (err) {
             console.log('Error sending response to ', rinfo);
         }
     });
 });
 
-server.on('listening', function() {
+server.on('listening', () => {
     const address = server.address();
     console.log('radius server listening ' + address.address + ':' + address.port);
 });

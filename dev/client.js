@@ -46,7 +46,7 @@ client.bind(49001);
 
 let response_count = 0;
 
-client.on('message', function(msg, rinfo) {
+client.on('message', (msg, rinfo) => {
     const response = radius.decode({
         packet: msg,
         secret: secret
@@ -75,7 +75,7 @@ client.on('message', function(msg, rinfo) {
 
 const sent_packets = {};
 
-[packet_accepted, packet_rejected, packet_wrong_secret].forEach(function(packet) {
+[packet_accepted, packet_rejected, packet_wrong_secret].forEach((packet) => {
     const encoded = radius.encode(packet);
     sent_packets[packet.identifier] = {
         raw_packet: encoded,
