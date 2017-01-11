@@ -33,7 +33,7 @@ server.on('message', (message, rinfo) => {
         }
     }
 
-    log(`packet: ${JSON.stringify(packet, null, 4)}`);
+    log(`packet: ${JSON.stringify(packet)}`);
 
 });
 
