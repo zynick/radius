@@ -6,10 +6,7 @@ const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
 const logError = debug('error');
-const {
-    secret,
-    mongo
-} = require('./config/config.json');
+const mongo = require('./config.json').mongo;
 
 
 /* initialize database */
@@ -26,16 +23,7 @@ models.forEach((model) => {
 
 
 /* start authentication server */
-const authServer = require('./authServer.js')(secret);
+const authServer = require('./authServer.js');
 
 /* start accounting  server */
 const acctServer = require('./acctServer.js');
-
-
-
-
-// const radcheck = mongoose.model('radcheck');
-// radcheck.findOne({}, (err, result) => {
-//     console.log(err);
-//     console.log(result);
-// });
