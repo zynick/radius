@@ -62,20 +62,18 @@ server.on('message', (message, rinfo) => {
 
         server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
             if (err) {
-                logError(new Error(`Error sending response to ${rinfo}`));
+                logError(new Error(`Error sending response to ${rinfo}: ${err.message}`));
             }
             log(`packet ${packet.identifier} responded`);
         });
     };
 
     switch (acctStatusType) {
-        case 'Accounting-On':
-            // TODO turn on accounting (duh)
-            sendResponse();
-            break;
-
         case 'Start':
         case 'Stop':
+        case 'Interim-Update':
+        case 'Accounting-On':
+        case 'Accounting-Off':
             const acct = new AccountingInsert({
                 // attributes['Event-Timestamp'] is add-on attribute from coova-chilli,
                 // so we will not going to bother overwriting it to date
@@ -89,11 +87,6 @@ server.on('message', (message, rinfo) => {
                 log('packet logged successfully.');
                 sendResponse();
             });
-            break;
-
-        case 'Interim-Update':
-        case 'Accounting-Off':
-            logError(new Error(`Acct-Status-Type ${acctStatusType} is not implemented.`));
             break;
 
         default:

@@ -12,8 +12,7 @@ const mongo = require('./config.json').mongo;
 /* initialize database */
 mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
 mongoose.connection.on('error', () => {
-    const msg = `unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`;
-    logError(new Error(msg));
+    logError(new Error(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`));
 });
 
 const models = glob.sync('./models/*.js');

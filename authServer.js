@@ -64,7 +64,7 @@ server.on('message', (message, rinfo) => {
 
             server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
                 if (err) {
-                    logError(new Error(`Error sending response to ${rinfo}`));
+                    logError(new Error(`Error sending response to ${rinfo}: ${err.message}`));
                 }
             });
 
