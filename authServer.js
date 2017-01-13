@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * RADIUS Authentication server
+ * RADIUS Authentication
  * https://tools.ietf.org/html/rfc2865
  */
 
@@ -49,7 +49,9 @@ server.on('message', (message, rinfo) => {
 
             // do verification here
             const code = 'Access-Accept'; // Access-Accept
-            authentication.find({ username }, (err, results) => {
+            authentication.find({
+                username
+            }, (err, results) => {
                 console.log(err);
                 console.log(results);
             });
@@ -70,15 +72,13 @@ server.on('message', (message, rinfo) => {
             break;
 
         case 'Access-Accept':
-            logError('Access-Accept not implemented yet.');
-            break;
-
         case 'Access-Reject':
-            logError('Access-Reject not implemented yet.');
+        case 'Access-Challenge':
+            logError(new Error(`Code ${packet.code} is not impemented.`));
             break;
 
-        case 'Access-Challenge':
-            logError('Access-Challenge not implemented yet.');
+        default:
+            log(`drop invalid code packet ${packet.code}`);
             break;
     }
 
