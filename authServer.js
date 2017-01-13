@@ -10,7 +10,8 @@ const dgram = require('dgram');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const Authentication = mongoose.model('Authentication');
+// const AuthenticationInput = mongoose.model('AuthenticationInput');
+const User = mongoose.model('User');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('authServer');
 const logError = debug('error');
@@ -42,6 +43,10 @@ server.on('message', (message, rinfo) => {
 
     log(`packet: ${JSON.stringify(packet)}`);
 
+    // TODO need to process to drop duplicate identifier
+    // TODO need to process to drop duplicate identifier
+    // TODO need to process to drop duplicate identifier
+
     const sendResponse = (code) => {
         const response = radius.encode_response({
             packet,
@@ -62,37 +67,19 @@ server.on('message', (message, rinfo) => {
             const username = packet.attributes['User-Name'];
             const password = packet.attributes['User-Password'];
 
-            // do verification here
-            const code = 'Access-Accept'; // or Access-Reject
-            Authentication.find({
-                username
-            }, (err, auth) => {
+            // TODO FIXME cheapo way to store password (plain text). please store properly.
+            User.find({
+                username,
+                password
+            }, (err, user) => {
                 if (err) {
                     logError(err);
                 }
-
-                // TODO validate password
-
-
-                sendResponse('Access-Accept');
+                const code = user ? 'Access-Accept' : 'Access-Reject';
+                sendResponse(code);
             });
-
-            const response = radius.encode_response({
-                packet,
-                code,
-                secret
-            });
-
-            server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
-                if (err) {
-                    logError(err);
-                }
-            });
-
             break;
 
-        case 'Access-Accept':
-        case 'Access-Reject':
         case 'Access-Challenge':
             logError(new Error(`Code ${packet.code} is not impemented.`));
             break;
