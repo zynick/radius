@@ -9,6 +9,14 @@ const accountingInsertSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    username: {
+        type: String,
+        index: true
+    },
+    nasId: {
+        type: String,
+        index: true
+    }
     attributes: Schema.Types.Mixed
 
 }, {
@@ -28,10 +36,20 @@ const accountingSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    username: {
+        type: String,
+        index: true
+    },
+    nasId: {
+        type: String,
+        index: true
+    },
     attributes: {
         'User-Name': String,
+        // Note 1: Accounting-Request must contain either one
         'NAS-IP-Address': String,
         'NAS-Identifier': String,
+        // End of Note 1
         'NAS-Port': String,
         'Service-Type': String,
         'Framed-Protocol': String,
