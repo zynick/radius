@@ -12,7 +12,7 @@ const dgram = require('dgram');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const Accounting = mongoose.model('accounting');
+const AccountingInsert = mongoose.model('AccountingInsert');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('acctServer');
 const logError = debug('error');
@@ -45,12 +45,7 @@ server.on('message', (message, rinfo) => {
         return log(`drop invalid code packet ${packet.code}`);
     }
 
-    // todo need to process to drop duplicate identifier
-    // todo need to process to drop duplicate identifier
-    // todo need to process to drop duplicate identifier
-    // todo need to process to drop duplicate identifier
-    // todo need to process to drop duplicate identifier
-    // todo need to process to drop duplicate identifier
+    // TODO need to process to drop duplicate identifier
 
     const attributes = packet.attributes;
     const acctStatusType = attributes['Acct-Status-Type'];
@@ -60,7 +55,7 @@ server.on('message', (message, rinfo) => {
 
     switch (acctStatusType) {
         case 'Start':
-            const acct = new Accounting({
+            const acct = new AccountingInsert({
                 date: Date.now(), // TODO overwrite from attributes "Event-Timestamp" exist
                 attributes: packet.attributes
             });
@@ -70,7 +65,9 @@ server.on('message', (message, rinfo) => {
                 }
                 log('packet logged successfully.');
             });
-            // logError(new Error(`Acct-Status-Type ${acctStatusType} is not implemented.`));
+
+            // TODO response
+
             break;
 
         case 'Stop':

@@ -18,4 +18,4 @@ const nasSchema = new Schema({
     autoIndex: process.env.NODE_ENV !== 'production'
 });
 
-mongoose.model('nas', nasSchema);
+mongoose.model('NAS', nasSchema);

@@ -10,7 +10,7 @@ const dgram = require('dgram');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const authentication = mongoose.model('authentication');
+const Authentication = mongoose.model('Authentication');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('authServer');
 const logError = debug('error');
@@ -49,7 +49,7 @@ server.on('message', (message, rinfo) => {
 
             // do verification here
             const code = 'Access-Accept'; // Access-Accept
-            authentication.find({
+            Authentication.find({
                 username
             }, (err, results) => {
                 console.log(err);

@@ -54,4 +54,4 @@ const authenticationSchema = new Schema({
     autoIndex: process.env.NODE_ENV !== 'production'
 });
 
-mongoose.model('authentication', authenticationSchema);
+mongoose.model('Authentication', authenticationSchema);
