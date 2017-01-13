@@ -49,7 +49,7 @@ const accountingSchema = new Schema({
         'Framed-Route': String,
         'Framed-IPX-Network': String,
         'Class': String,
-        'Vendor-Specific': String,
+        'Vendor-Specific': Schema.Types.Mixed,
         'Session-Timeout': String,
         'Idle-Timeout': String,
         'Termination-Action': String,
