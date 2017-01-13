@@ -42,18 +42,39 @@ server.on('message', (message, rinfo) => {
 
     log(`packet: ${JSON.stringify(packet)}`);
 
+    const sendResponse = (code) => {
+        const response = radius.encode_response({
+            packet,
+            code,
+            secret
+        });
+
+        server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
+            if (err) {
+                logError(err);
+            }
+            log(`packet ${packet.identifier} responded`);
+        });
+    };
+
     switch (packet.code) {
         case 'Access-Request':
             const username = packet.attributes['User-Name'];
             const password = packet.attributes['User-Password'];
 
             // do verification here
-            const code = 'Access-Accept'; // Access-Accept
+            const code = 'Access-Accept'; // or Access-Reject
             Authentication.find({
                 username
-            }, (err, results) => {
-                console.log(err);
-                console.log(results);
+            }, (err, auth) => {
+                if (err) {
+                    logError(err);
+                }
+
+                // TODO validate password
+
+
+                sendResponse('Access-Accept');
             });
 
             const response = radius.encode_response({
@@ -64,7 +85,7 @@ server.on('message', (message, rinfo) => {
 
             server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
                 if (err) {
-                    logError(new Error(`Error sending response to ${rinfo}: ${err.message}`));
+                    logError(err);
                 }
             });
 

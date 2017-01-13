@@ -45,15 +45,19 @@ server.on('message', (message, rinfo) => {
         return log(`drop invalid code packet ${packet.code}`);
     }
 
+    log(`packet: ${JSON.stringify(packet)}`);
+
+    // TODO need to process to drop duplicate identifier
+    // TODO need to process to drop duplicate identifier
     // TODO need to process to drop duplicate identifier
 
     const attributes = packet.attributes;
     const acctStatusType = attributes['Acct-Status-Type'];
     const acctSessionId = attributes['Acct-Session-Id'];
 
-    log(`packet: ${JSON.stringify(packet)}`);
 
-    var sendResponse = () => {
+
+    const sendResponse = () => {
         const response = radius.encode_response({
             packet,
             code: 'Accounting-Response',
@@ -62,7 +66,7 @@ server.on('message', (message, rinfo) => {
 
         server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
             if (err) {
-                logError(new Error(`Error sending response to ${rinfo}: ${err.message}`));
+                logError(err);
             }
             log(`packet ${packet.identifier} responded`);
         });
