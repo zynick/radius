@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 // TODO change this schema! you should have User collection and NAS collection wtf!
+// TODO what should i do with this collection? use it as logger? just like accounting?
 
 const authenticationInsertSchema = new Schema({
 
@@ -14,7 +15,7 @@ const authenticationInsertSchema = new Schema({
     nasId: {
         type: String,
         index: true
-    }
+    },
     attributes: Schema.Types.Mixed
 
 }, {

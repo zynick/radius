@@ -16,7 +16,7 @@ const accountingInsertSchema = new Schema({
     nasId: {
         type: String,
         index: true
-    }
+    },
     attributes: Schema.Types.Mixed
 
 }, {

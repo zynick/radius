@@ -8,7 +8,7 @@ const nasSchema = new Schema({
         type: String,
         required: true,
         index: true
-    },
+    }
 }, {
     versionKey: false,
     collection: 'nas',
