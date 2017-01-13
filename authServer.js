@@ -62,7 +62,6 @@ server.on('message', (message, rinfo) => {
                 secret
             });
 
-
             server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
                 if (err) {
                     logError(new Error(`Error sending response to ${rinfo}`));

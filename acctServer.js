@@ -53,29 +53,45 @@ server.on('message', (message, rinfo) => {
 
     log(`packet: ${JSON.stringify(packet)}`);
 
+    var sendResponse = () => {
+        const response = radius.encode_response({
+            packet,
+            code: 'Accounting-Response',
+            secret
+        });
+
+        server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
+            if (err) {
+                logError(new Error(`Error sending response to ${rinfo}`));
+            }
+            log(`packet ${packet.identifier} responded`);
+        });
+    };
+
     switch (acctStatusType) {
+        case 'Accounting-On':
+            // TODO turn on accounting (duh)
+            sendResponse();
+            break;
+
         case 'Start':
+        case 'Stop':
             const acct = new AccountingInsert({
-                date: Date.now(), // TODO overwrite from attributes "Event-Timestamp" exist
-                attributes: packet.attributes
+                // attributes['Event-Timestamp'] is add-on attribute from coova-chilli,
+                // so we will not going to bother overwriting it to date
+                date: Date.now(),
+                attributes
             });
             acct.save((err, acct) => {
                 if (err) {
                     logError(err);
                 }
                 log('packet logged successfully.');
+                sendResponse();
             });
-
-            // TODO response
-
-            break;
-
-        case 'Stop':
-            logError(new Error(`Acct-Status-Type ${acctStatusType} is not implemented.`));
             break;
 
         case 'Interim-Update':
-        case 'Accounting-On':
         case 'Accounting-Off':
             logError(new Error(`Acct-Status-Type ${acctStatusType} is not implemented.`));
             break;
