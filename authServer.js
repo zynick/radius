@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 const radius = require('radius');
 
 // const AuthenticationInput = mongoose.model('AuthenticationInput');
-const User = mongoose.model('User');
+const Users = mongoose.model('Users');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('authServer');
 const logError = debug('error');
@@ -68,13 +68,14 @@ server.on('message', (message, rinfo) => {
             const password = packet.attributes['User-Password'];
 
             // TODO FIXME cheapo way to store password (plain text). please store properly.
-            User.find({
+            Users.findOne({
                 username,
                 password
             }, (err, user) => {
                 if (err) {
                     logError(err);
                 }
+
                 const code = user ? 'Access-Accept' : 'Access-Reject';
                 sendResponse(code);
             });

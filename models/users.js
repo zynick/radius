@@ -12,8 +12,8 @@ const userSchema = new Schema({
     password: String
 }, {
     versionKey: false,
-    collection: 'user',
+    collection: 'users',
     autoIndex: process.env.NODE_ENV !== 'production'
 });
 
-mongoose.model('User', userSchema);
+mongoose.model('Users', userSchema);
