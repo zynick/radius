@@ -1,7 +1,5 @@
 'use strict';
 
-// TODO separate accounting server from authentication server. it's just a logging server!
-
 /*
  * RADIUS Accounting
  * https://tools.ietf.org/html/rfc2866
@@ -9,6 +7,7 @@
 
 const debug = require('debug');
 const dgram = require('dgram');
+const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
@@ -16,9 +15,23 @@ const AccountingInsert = mongoose.model('AccountingInsert');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('acctServer');
 const logError = debug('error');
-const secret = require('./config.json').secret;
+const { mongo, secret } = require('./config.json');
 const server = dgram.createSocket('udp4');
 
+/* initialize database */
+mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
+mongoose.connection.on('error', (err) => {
+    logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
+    logError(err);
+});
+
+const models = glob.sync('./models/*.js');
+models.forEach((model) => {
+    require(model);
+});
+
+
+/* start server */
 server.on('listening', () => {
     const address = server.address();
     log(`listening @ ${address.address}:${address.port}`);
@@ -55,14 +68,8 @@ server.on('message', (message, rinfo) => {
     const acctStatusType = attributes['Acct-Status-Type'];
     const acctSessionId = attributes['Acct-Session-Id'];
 
-
-
-    const sendResponse = () => {
-        const response = radius.encode_response({
-            packet,
-            code: 'Accounting-Response',
-            secret
-        });
+    function sendResponse(code) {
+        const response = radius.encode_response({ packet, code, secret });
 
         server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
             if (err) {
@@ -70,7 +77,7 @@ server.on('message', (message, rinfo) => {
             }
             log(`packet ${packet.identifier} responded`);
         });
-    };
+    }
 
     switch (acctStatusType) {
         case 'Start':
@@ -89,7 +96,7 @@ server.on('message', (message, rinfo) => {
                     logError(err);
                 }
                 log('packet logged successfully.');
-                sendResponse();
+                sendResponse('Accounting-Response');
             });
             break;
 
@@ -106,6 +113,3 @@ server.on('error', (err) => {
 });
 
 server.bind(1813);
-
-
-module.exports = server;

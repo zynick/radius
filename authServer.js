@@ -7,18 +7,32 @@
 
 const debug = require('debug');
 const dgram = require('dgram');
+const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-// const AuthenticationInput = mongoose.model('AuthenticationInput');
 const Users = mongoose.model('Users');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('authServer');
 const logError = debug('error');
-const secret = require('./config.json').secret;
+const { mongo, secret } = require('./config.json');
 const server = dgram.createSocket('udp4');
 
 
+/* initialize database */
+mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
+mongoose.connection.on('error', (err) => {
+    logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
+    logError(err);
+});
+
+const models = glob.sync('./models/*.js');
+models.forEach((model) => {
+    require(model);
+});
+
+
+/* start server */
 server.on('listening', () => {
     const address = server.address();
     log(`listening @ ${address.address}:${address.port}`);
@@ -44,15 +58,11 @@ server.on('message', (message, rinfo) => {
     log(`packet: ${JSON.stringify(packet)}`);
 
     // TODO need to process to drop duplicate identifier
-    // TODO need to process to drop duplicate identifier
+    // TODO need to process to drop duplicate identifier`
     // TODO need to process to drop duplicate identifier
 
-    const sendResponse = (code) => {
-        const response = radius.encode_response({
-            packet,
-            code,
-            secret
-        });
+    function sendResponse(code) {
+        const response = radius.encode_response({ packet, code, secret });
 
         server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
             if (err) {
@@ -60,7 +70,7 @@ server.on('message', (message, rinfo) => {
             }
             log(`packet ${packet.identifier} responded`);
         });
-    };
+    }
 
     switch (packet.code) {
         case 'Access-Request':
@@ -98,6 +108,3 @@ server.on('error', (err) => {
 });
 
 server.bind(1812);
-
-
-module.exports = server;
