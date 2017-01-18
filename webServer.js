@@ -1,15 +1,22 @@
-#!/usr/bin/env node
-
 'use strict';
 
 const debug = require('debug');
+const bodyParser = require('body-parser');
+const express = require('express');
 const http = require('http');
-const app = require('./express');
+
 const log = debug('web:server');
 const logError = debug('web:error');
+const routes = require('./routes');
 
 
-/* Normalize environment port into a number, string (named pipe), or false. */
+/* Initialize Express */
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use('/', routes);
+
+// normalize environment port into a number, string (named pipe), or false.
 function normalizePort(val) {
     let port = parseInt(val, 10);
     if (isNaN(port)) {
@@ -20,7 +27,6 @@ function normalizePort(val) {
     }
     return false;
 }
-
 const port = normalizePort(process.env.PORT || 3000);
 app.set('port', port);
 

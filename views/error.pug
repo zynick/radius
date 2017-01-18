@@ -1,8 +1,0 @@
-extends layout
-
-block content
-    h1 Error
-    p= message
-    p= error.status
-    if error.stack
-        pre(style='text-align:left')= error.stack
