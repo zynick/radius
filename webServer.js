@@ -5,8 +5,8 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const http = require('http');
 
-const log = debug('web:server');
-const logError = debug('web:error');
+const log = debug('webServer');
+const logError = debug('error');
 const routes = require('./routes');
 
 
