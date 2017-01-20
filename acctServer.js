@@ -11,14 +11,14 @@ const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const AccountingInsert = mongoose.model('AccountingInsert');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('acct:server');
 const logError = debug('acct:error');
 const { mongo, secret } = require('./config.json');
 const server = dgram.createSocket('udp4');
 
-/* initialize database */
+
+/* Initialize Database */
 mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
 mongoose.connection.on('error', (err) => {
     logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
@@ -29,11 +29,13 @@ glob.sync('./models/*.js')
         require(model);
     });
 
+const AccountingInsert = mongoose.model('AccountingInsert');
 
-/* start server */
+
+/* Start Server */
 server.on('listening', () => {
     const address = server.address();
-    log(`listening @ ${address.address}:${address.port}`);
+    log(`listening on ${address.address}:${address.port}`);
 });
 
 server.on('message', (message, rinfo) => {

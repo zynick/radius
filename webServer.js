@@ -74,5 +74,5 @@ server.on('error', (err) => {
 server.on('listening', () => {
     const addr = server.address();
     const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
-    log(`Listening on ${bind}`);
+    log(`listening on ${bind}`);
 });

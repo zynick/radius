@@ -11,7 +11,6 @@ const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const Users = mongoose.model('Users');
 const InvalidSecretError = radius.InvalidSecretError;
 const log = debug('auth:server');
 const logError = debug('auth:error');
@@ -19,7 +18,7 @@ const { mongo, secret } = require('./config.json');
 const server = dgram.createSocket('udp4');
 
 
-/* initialize database */
+/* Initialize Database */
 mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
 mongoose.connection.on('error', (err) => {
     logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
@@ -30,11 +29,13 @@ glob.sync('./models/*.js')
         require(model);
     });
 
+const Users = mongoose.model('Users');
 
-/* start server */
+
+/* Start Server */
 server.on('listening', () => {
     const address = server.address();
-    log(`listening @ ${address.address}:${address.port}`);
+    log(`listening on ${address.address}:${address.port}`);
 });
 
 server.on('message', (message, rinfo) => {

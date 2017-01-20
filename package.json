@@ -3,12 +3,12 @@
     "version": "0.0.1",
     "private": true,
     "scripts": {
-        "dev": "npm run dev_web && npm run dev_auth && npm run dev_acct",
+        "dev": "npm run dev_web & npm run dev_auth & npm run dev_acct",
         "dev_acct": "NODE_ENV=development DEBUG=acct:* node acctServer",
         "dev_auth": "NODE_ENV=development DEBUG=auth:* node authServer",
         "dev_web": "NODE_ENV=development PORT=3000 DEBUG=web:* node webServer",
 
-        "start": "npm run start_web && npm run start_auth && npm run start_acct",
+        "start": "npm run start_web & npm run start_auth & npm run start_acct",
         "start_acct": "NODE_ENV=production DEBUG=acct:error node acctServer",
         "start_auth": "NODE_ENV=production DEBUG=auth:error node authServer",
         "start_web": "NODE_ENV=production PORT=3000 DEBUG=web:error node webServer"
