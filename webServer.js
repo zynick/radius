@@ -3,12 +3,26 @@
 const bodyParser = require('body-parser');
 const debug = require('debug');
 const express = require('express');
+const glob = require('glob');
 const http = require('http');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 
 const log = debug('web:server');
 const logError = debug('web:error');
-const routes = require('./routes');
+const { mongo } = require('./config.json');
+
+
+/* Initialize Database */
+mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
+mongoose.connection.on('error', (err) => {
+    logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
+    logError(err);
+});
+glob.sync('./models/*.js')
+    .forEach((model) => {
+        require(model);
+    });
 
 
 /* Initialize Express */
@@ -16,7 +30,7 @@ const app = express();
 app.use(morgan('common'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use('/', routes);
+app.use('/', require('./routes'));
 
 // normalize environment port into a number, string (named pipe), or false.
 function normalizePort(val) {

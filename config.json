@@ -1,5 +1,6 @@
 {
     "secret": "KYjFQP3BYDXS85k4",
+    "apiToken": "uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI",
     "mongo": {
         "host": "localhost",
         "port": 27017,

@@ -24,7 +24,6 @@ mongoose.connection.on('error', (err) => {
     logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
     logError(err);
 });
-
 glob.sync('./models/*.js')
     .forEach((model) => {
         require(model);

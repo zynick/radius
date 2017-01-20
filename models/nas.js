@@ -4,11 +4,23 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const nasSchema = new Schema({
-    identifier: {
+
+    name: {
         type: String,
         required: true,
         index: true
-    }
+    },
+
+    company: {
+        type: String,
+        required: true,
+        index: true
+    },
+
+    mac: String,
+    secret: String,
+    lastseen: Date
+
 }, {
     versionKey: false,
     collection: 'nas',
