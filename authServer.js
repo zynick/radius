@@ -13,8 +13,8 @@ const radius = require('radius');
 
 const Users = mongoose.model('Users');
 const InvalidSecretError = radius.InvalidSecretError;
-const log = debug('authServer');
-const logError = debug('error');
+const log = debug('auth:server');
+const logError = debug('auth:error');
 const { mongo, secret } = require('./config.json');
 const server = dgram.createSocket('udp4');
 

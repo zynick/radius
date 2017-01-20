@@ -13,8 +13,8 @@ const radius = require('radius');
 
 const AccountingInsert = mongoose.model('AccountingInsert');
 const InvalidSecretError = radius.InvalidSecretError;
-const log = debug('acctServer');
-const logError = debug('error');
+const log = debug('acct:server');
+const logError = debug('acct:error');
 const { mongo, secret } = require('./config.json');
 const server = dgram.createSocket('udp4');
 

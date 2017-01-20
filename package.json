@@ -4,13 +4,14 @@
     "private": true,
     "scripts": {
         "dev": "npm run dev_web && npm run dev_auth && npm run dev_acct",
-        "dev_acct": "NODE_ENV=production DEBUG=* node acctServer",
-        "dev_auth": "NODE_ENV=production DEBUG=* node authServer",
-        "dev_web": "NODE_ENV=production DEBUG=* node webServer",
+        "dev_acct": "NODE_ENV=production DEBUG=acct:* node acctServer",
+        "dev_auth": "NODE_ENV=production DEBUG=auth:* node authServer",
+        "dev_web": "NODE_ENV=production PORT=3000 DEBUG=web:* node webServer",
+
         "start": "npm run start_web && npm run start_auth && npm run start_acct",
-        "start_acct": "NODE_ENV=production DEBUG=error node acctServer",
-        "start_auth": "NODE_ENV=production DEBUG=error node authServer",
-        "start_web": "NODE_ENV=production DEBUG=error node webServer"
+        "start_acct": "NODE_ENV=production DEBUG=acct:error node acctServer",
+        "start_auth": "NODE_ENV=production DEBUG=auth:error node authServer",
+        "start_web": "NODE_ENV=production PORT=3000 DEBUG=web:error node webServer"
     },
     "dependencies": {
         "body-parser": "^1.15.2",
