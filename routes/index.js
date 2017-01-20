@@ -5,7 +5,7 @@ const isProd = process.env.NODE_ENV === 'production';
 const { version } = require('../package.json');
 
 
-router.all('/', (req, res) => {
+router.get('/', (req, res) => {
 
     if (!isProd) {
         console.log('\n');

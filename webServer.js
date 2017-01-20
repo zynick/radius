@@ -1,9 +1,10 @@
 'use strict';
 
-const debug = require('debug');
 const bodyParser = require('body-parser');
+const debug = require('debug');
 const express = require('express');
 const http = require('http');
+const morgan = require('morgan');
 
 const log = debug('webServer');
 const logError = debug('error');
@@ -12,13 +13,14 @@ const routes = require('./routes');
 
 /* Initialize Express */
 const app = express();
+app.use(morgan('common'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/', routes);
 
 // normalize environment port into a number, string (named pipe), or false.
 function normalizePort(val) {
-    let port = parseInt(val, 10);
+    const port = parseInt(val, 10);
     if (isNaN(port)) {
         return val;
     }
