@@ -6,9 +6,16 @@ const isProd = process.env.NODE_ENV === 'production';
 const { version } = require('../package.json');
 
 
-router.get('/', (req, res) => {
+if (isProd) {
 
-    if (!isProd) {
+    router.get('/', (req, res) => {
+        res.json(`Radius API Server v${version}`);
+    });
+
+} else {
+    // for development only. remove later
+
+    router.all('/', (req, res) => {
         log('==========');
         // log(`KEYS: ${Object.keys(req)}`);
         log(`HEADERS: ${JSON.stringify(req.headers, null, 2)}`);
@@ -17,13 +24,14 @@ router.get('/', (req, res) => {
         log(`PARAMS: ${JSON.stringify(req.params, null, 2)}`);
         log(`BODY: ${JSON.stringify(req.body, null, 2)}`);
 
-        // for development only. remove later
         // res.setHeader('Access-Control-Allow-Credentials', 'true');
         // res.setHeader('Access-Control-Allow-Origin', '*');
-    }
 
-    res.json(`Radius API Server v${version}`);
-});
+        res.json(`Radius API Server v${version}`);
+    });
+
+}
+
 
 router.use('/api', require('./api'));
 
