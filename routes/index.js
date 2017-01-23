@@ -8,7 +8,6 @@ const { version } = require('../package.json');
 
 router.get('/', (req, res) => {
 
-    log(!isProd);
     if (!isProd) {
         log('==========');
         // log(`KEYS: ${Object.keys(req)}`);
@@ -37,8 +36,7 @@ router.use((req, res, next) => {
 });
 
 router.use((err, req, res, next) => {
-    const status = err.status || 500;
-    const message = err.message || 'Internal Server Error';
+    const { status = 500, message = 'Internal Server Error' } = err;
     const error = { status, message };
     // hide stacktrace in production, show otherwise
     if (!isProd) { error.stack = err.stack; }
