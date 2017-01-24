@@ -16,7 +16,7 @@ const glob = require('glob');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const InvalidSecretError = radius.InvalidSecretError;
+const { InvalidSecretError } = radius;
 const log = debug('auth:server');
 const logError = debug('auth:error');
 const { mongo, secret } = require('./config.json');
@@ -54,7 +54,7 @@ server.on('message', (message, rinfo) => {
         });
     } catch (error) {
         if (error instanceof InvalidSecretError) {
-            return log('drop invalid packet');
+            return log('drop invalid secret message');
         } else {
             throw error;
         }
@@ -74,7 +74,7 @@ server.on('message', (message, rinfo) => {
                 if (err) {
                     logError(err);
                 }
-                log(`packet ${packet.identifier} responded`);
+                log(`packet ${packet.identifier} responded: ${code}`);
             });
     }
 
@@ -125,37 +125,30 @@ server.on('message', (message, rinfo) => {
         return logError(new Error(`Access-Request with State is not impemented.`));
     }
 
-    switch (packet.code) {
-        case 'Access-Request':
 
-            const username = packet.attributes['User-Name'];
-            // must have either one
-            const password = packet.attributes['User-Password'];
-            const chapPassword = packet.attributes['CHAP-Password'];
-            const state = packet.attributes['State'];
 
-            if (password) {
-                requestPassword(username, password);
+    if (packet.code !== 'Access-Request') {
+        return log(`drop invalid packet code ${packet.code}`);
+    }
 
-            } else if (chapPassword) {
-                requestCHAP(username, chapPassword);
+    const username = packet.attributes['User-Name'];
+    // must have either one
+    const password = packet.attributes['User-Password'];
+    const chapPassword = packet.attributes['CHAP-Password'];
+    const state = packet.attributes['State'];
 
-            } else if (state) {
-                requestState(username, state);
+    if (password) {
+        requestPassword(username, password);
 
-            } else {
-                return logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
-            }
+    } else if (chapPassword) {
+        requestCHAP(username, chapPassword);
 
-            break;
+    } else if (state) {
+        requestState(username, state);
 
-        case 'Access-Challenge':
-            logError(new Error(`Code ${packet.code} is not impemented.`));
-            break;
-
-        default:
-            log(`drop invalid code packet ${packet.code}`);
-            break;
+    } else {
+        // https://tools.ietf.org/html/rfc2865#section-4.1
+        return logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
     }
 
 });
