@@ -1,5 +1,9 @@
 'use strict';
 
+// TODO implement CHAP via https://www.npmjs.com/package/chap !!!!
+// TODO implement CHAP via https://www.npmjs.com/package/chap !!!!
+// TODO implement CHAP via https://www.npmjs.com/package/chap !!!!
+
 /*
  * RADIUS Authentication
  * https://tools.ietf.org/html/rfc2865
@@ -58,7 +62,7 @@ server.on('message', (message, rinfo) => {
     log(`packet: ${JSON.stringify(packet)}`);
 
     // TODO need to process to drop duplicate identifier
-    // TODO need to process to drop duplicate identifier`
+    // TODO need to process to drop duplicate identifier
     // TODO need to process to drop duplicate identifier
 
     function sendResponse(code) {
@@ -74,21 +78,44 @@ server.on('message', (message, rinfo) => {
 
     switch (packet.code) {
         case 'Access-Request':
+
             const username = packet.attributes['User-Name'];
+            // must have either one
             const password = packet.attributes['User-Password'];
+            const chapPass = packet.attributes['CHAP-Password'];
+            const state = packet.attributes['State'];
 
-            // TODO FIXME cheapo way to store password (plain text). please store properly.
-            Users.findOne({
-                username,
-                password
-            }, (err, user) => {
-                if (err) {
-                    logError(err);
-                }
+            if (password) {
 
-                const code = user ? 'Access-Accept' : 'Access-Reject';
-                sendResponse(code);
-            });
+                // TODO FIXME cheapo way to store password (plain text). please store properly.
+                Users.findOne({
+                    username,
+                    password
+                }, (err, user) => {
+                    if (err) { logError(err); }
+                    const code = user ? 'Access-Accept' : 'Access-Reject';
+                    sendResponse(code);
+                });
+
+            } else if (chapPass) {
+
+                const _password = 'password';
+                const challenge = packet.attributes['CHAP-Challenge'];
+                log('challenge: ' + challenge);
+                log('challenge.toString(): ' + challenge.toString());
+                log("challenge.toString('utf8'): " + challenge.toString('utf8'));
+                log(md5(_password + challenge.toString()))
+
+            } else if (state) {
+
+                logError(new Error(`Access-Request with State is not impemented.`));
+
+            } else {
+
+                logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
+
+            }
+
             break;
 
         case 'Access-Challenge':
