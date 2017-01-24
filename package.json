@@ -14,6 +14,7 @@
         "start_web": "NODE_ENV=production PORT=3000 DEBUG=web:error node webServer"
     },
     "dependencies": {
+        "blueimp-md5": "^2.6.0",
         "body-parser": "^1.15.2",
         "debug": "^2.2.0",
         "express": "^4.14.0",

@@ -9,6 +9,7 @@
  * https://tools.ietf.org/html/rfc2865
  */
 
+const md5 = require('blueimp-md5');
 const debug = require('debug');
 const dgram = require('dgram');
 const glob = require('glob');
