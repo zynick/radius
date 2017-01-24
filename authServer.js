@@ -93,27 +93,51 @@ server.on('message', (message, rinfo) => {
                     username,
                     password
                 }, (err, user) => {
-                    if (err) { logError(err); }
+                    if (err) {
+                        return logError(err);
+                    }
                     const code = user ? 'Access-Accept' : 'Access-Reject';
-                    sendResponse(code);
+                    return sendResponse(code);
                 });
 
             } else if (chapPass) {
 
-                const _password = 'password';
                 const challenge = packet.attributes['CHAP-Challenge'];
-                log('challenge: ' + challenge);
-                log('challenge.toString(): ' + challenge.toString());
-                log("challenge.toString('utf8'): " + challenge.toString('utf8'));
-                log(md5(_password + challenge.toString()))
+                if (challenge || challenge.length !== 16) {
+                    return logError(new Error('Invalid CHAP-Challenge.'));
+                }
+
+                // first byte is chap-id from mikrotik
+                if (chapPass.length !== 17) {
+                    return logError(new Error('Invalid CHAP-Password.'));
+                }
+                const _chapPass = chapPass.slice(1);
+
+                Users.findOne({
+                    username
+                }, (err, user) => {
+                    if (err) {
+                        return logError(err);
+                    }
+                    if (!user) {
+                        return sendResponse('Access-Reject');
+                    }
+
+                    const hashed = md5(user.password + challenge.toString('binary'));
+                    console.log(`chapPass: ${chapPass}`);
+                    console.log(`_chapPass: ${_chapPass}`);
+                    console.log(`hashed: ${hashed}`);
+                    const code = hashed === _chapPass ? 'Access-Accept' : 'Access-Reject';
+                    return sendResponse(code);
+                });
 
             } else if (state) {
 
-                logError(new Error(`Access-Request with State is not impemented.`));
+                return logError(new Error(`Access-Request with State is not impemented.`));
 
             } else {
 
-                logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
+                return logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
 
             }
 
