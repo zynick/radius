@@ -100,7 +100,7 @@ server.on('message', (message, rinfo) => {
         if (chapPassword.length !== 17) {
             return logError(new Error('Invalid CHAP-Password.'));
         }
-        const _chapPassword = chapPassword.slice(1);
+        const _chapPassword = chapPassword.slice(1).toString('hex');
 
         Users.findOne({
             username
@@ -113,9 +113,6 @@ server.on('message', (message, rinfo) => {
             }
 
             const hashed = md5(user.password + challenge.toString('binary'));
-            console.log(`chapPassword: ${chapPassword}`);
-            console.log(`_chapPassword: ${_chapPassword}`);
-            console.log(`hashed: ${hashed}`);
             const code = hashed === _chapPassword ? 'Access-Accept' : 'Access-Reject';
             return sendResponse(code);
         });
