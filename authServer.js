@@ -67,14 +67,62 @@ server.on('message', (message, rinfo) => {
     // TODO need to process to drop duplicate identifier
 
     function sendResponse(code) {
-        const response = radius.encode_response({ packet, code, secret });
+        const res = radius.encode_response({ packet, code, secret });
 
-        server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
+        server.send(res, 0, res.length, rinfo.port, rinfo.address,
+            (err, bytes) => {
+                if (err) {
+                    logError(err);
+                }
+                log(`packet ${packet.identifier} responded`);
+            });
+    }
+
+    function requestPassword(username, password) {
+        // TODO FIXME cheapo way to store password (plain text). please store properly.
+        Users.findOne({ username, password },
+            (err, user) => {
+                if (err) {
+                    return logError(err);
+                }
+                const code = user ? 'Access-Accept' : 'Access-Reject';
+                return sendResponse(code);
+            });
+    }
+
+    function requestCHAP(username, chapPassword) {
+        const challenge = packet.attributes['CHAP-Challenge'];
+        if (!challenge || challenge.length !== 16) {
+            return logError(new Error('Invalid CHAP-Challenge.'));
+        }
+
+        // first byte is chap-id from mikrotik
+        if (chapPassword.length !== 17) {
+            return logError(new Error('Invalid CHAP-Password.'));
+        }
+        const _chapPassword = chapPassword.slice(1);
+
+        Users.findOne({
+            username
+        }, (err, user) => {
             if (err) {
-                logError(err);
+                return logError(err);
             }
-            log(`packet ${packet.identifier} responded`);
+            if (!user) {
+                return sendResponse('Access-Reject');
+            }
+
+            const hashed = md5(user.password + challenge.toString('binary'));
+            console.log(`chapPassword: ${chapPassword}`);
+            console.log(`_chapPassword: ${_chapPassword}`);
+            console.log(`hashed: ${hashed}`);
+            const code = hashed === _chapPassword ? 'Access-Accept' : 'Access-Reject';
+            return sendResponse(code);
         });
+    }
+
+    function requestState(username, state) {
+        return logError(new Error(`Access-Request with State is not impemented.`));
     }
 
     switch (packet.code) {
@@ -83,62 +131,20 @@ server.on('message', (message, rinfo) => {
             const username = packet.attributes['User-Name'];
             // must have either one
             const password = packet.attributes['User-Password'];
-            const chapPass = packet.attributes['CHAP-Password'];
+            const chapPassword = packet.attributes['CHAP-Password'];
             const state = packet.attributes['State'];
 
             if (password) {
+                requestPassword(username, password);
 
-                // TODO FIXME cheapo way to store password (plain text). please store properly.
-                Users.findOne({
-                    username,
-                    password
-                }, (err, user) => {
-                    if (err) {
-                        return logError(err);
-                    }
-                    const code = user ? 'Access-Accept' : 'Access-Reject';
-                    return sendResponse(code);
-                });
-
-            } else if (chapPass) {
-
-                const challenge = packet.attributes['CHAP-Challenge'];
-                if (challenge || challenge.length !== 16) {
-                    return logError(new Error('Invalid CHAP-Challenge.'));
-                }
-
-                // first byte is chap-id from mikrotik
-                if (chapPass.length !== 17) {
-                    return logError(new Error('Invalid CHAP-Password.'));
-                }
-                const _chapPass = chapPass.slice(1);
-
-                Users.findOne({
-                    username
-                }, (err, user) => {
-                    if (err) {
-                        return logError(err);
-                    }
-                    if (!user) {
-                        return sendResponse('Access-Reject');
-                    }
-
-                    const hashed = md5(user.password + challenge.toString('binary'));
-                    console.log(`chapPass: ${chapPass}`);
-                    console.log(`_chapPass: ${_chapPass}`);
-                    console.log(`hashed: ${hashed}`);
-                    const code = hashed === _chapPass ? 'Access-Accept' : 'Access-Reject';
-                    return sendResponse(code);
-                });
+            } else if (chapPassword) {
+                requestCHAP(username, chapPassword);
 
             } else if (state) {
-
-                return logError(new Error(`Access-Request with State is not impemented.`));
+                requestState(username, state);
 
             } else {
-
                 return logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
-
             }
 
             break;
