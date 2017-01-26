@@ -8,14 +8,17 @@ const { apiToken } = require('../config.json');
 const isProd = process.env.NODE_ENV === 'production';
 
 
-router.post('/ap/register', (req, res, next) => {
-
-    if (req.body.token !== apiToken) {
+function routeTokenValidation(req, res, next) {
+    const { authorization } = req.headers;
+    if (authorization !== `Bearer ${apiToken}`) {
         const err = new Error('Unauthorized');
         err.status = 401;
         return next(err);
     }
+    next();
+}
 
+function routeAPRegister(req, res, next) {
     const { name, company, mac, secret } = req.body;
 
     if (!name || !company || !mac || !secret) {
@@ -45,16 +48,9 @@ router.post('/ap/register', (req, res, next) => {
         });
     });
 
-});
+}
 
-router.get('/ap/status', (req, res, next) => {
-
-    if (req.query.token !== apiToken) {
-        const err = new Error('Unauthorized');
-        err.status = 401;
-        return next(err);
-    }
-
+function routeAPStatus(req, res, next) {
     const { name, company } = req.query;
 
     NAS.findOne({ name, company }, (err, nas) => {
@@ -71,8 +67,13 @@ router.get('/ap/status', (req, res, next) => {
         const lastseen = nas.lastseen ? nast.lastseen.getTime() : -1;
         res.status(200).json({ lastseen });
     });
+}
 
-});
+
+
+router.use(routeTokenValidation);
+router.post('/ap/register', routeAPRegister);
+router.get('/ap/status', routeAPStatus);
 
 
 module.exports = router;
