@@ -6,11 +6,11 @@ const isProd = process.env.NODE_ENV === 'production';
 const { version } = require('../package.json');
 
 
-function routeMain(req, res) {
+const routeMain = (req, res) => {
     res.json(`Radius API Server v${version}`);
-}
+};
 
-function routeMainDebug(req, res) {
+const routeMainDebug = (req, res) => {
     log('==========');
     log(`HEADERS: ${JSON.stringify(req.headers, null, 2)}`);
     log(`QUERY: ${JSON.stringify(req.query, null, 2)}`);
@@ -20,15 +20,15 @@ function routeMainDebug(req, res) {
     // res.setHeader('Access-Control-Allow-Credentials', 'true');
     // res.setHeader('Access-Control-Allow-Origin', '*');
     res.json(`Radius API Server v${version}`);
-}
+};
 
-function routeNotFound(req, res, next) {
+const routeNotFound = (req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
     next(err);
-}
+};
 
-function routeErrorHandlerJSON(err, req, res, next) {
+const routeErrorHandlerJSON = (err, req, res, next) => {
     const { status = 500, message = 'Internal Server Error' } = err;
     const error = { status, message };
     // hide stacktrace in production, show otherwise
@@ -36,7 +36,7 @@ function routeErrorHandlerJSON(err, req, res, next) {
     res
         .status(status)
         .json({ error });
-}
+};
 
 
 

@@ -2,13 +2,11 @@
 
 const mongoose = require('mongoose');
 const router = require('express').Router();
-const log = require('debug')('web:routes');
 const NAS = mongoose.model('NAS');
 const { apiToken } = require('../config.json');
-const isProd = process.env.NODE_ENV === 'production';
 
 
-function routeTokenValidation(req, res, next) {
+const routeTokenValidation = (req, res, next) => {
     const { authorization } = req.headers;
     if (authorization !== `Bearer ${apiToken}`) {
         const err = new Error('Unauthorized');
@@ -16,9 +14,9 @@ function routeTokenValidation(req, res, next) {
         return next(err);
     }
     next();
-}
+};
 
-function routeAPRegister(req, res, next) {
+const routeAPRegister = (req, res, next) => {
     const { id } = req.body;
 
     if (!id) {
@@ -35,9 +33,9 @@ function routeAPRegister(req, res, next) {
             if (err) { return next(err); }
             res.status(200).end();
         });
-}
+};
 
-function routeAPStatus(req, res, next) {
+const routeAPStatus = (req, res, next) => {
     const { id } = req.query;
 
     if (!id) {
@@ -59,7 +57,7 @@ function routeAPStatus(req, res, next) {
         const lastseen = nas.lastseen ? nast.lastseen.getTime() : -1;
         res.status(200).json({ lastseen });
     });
-}
+};
 
 
 
