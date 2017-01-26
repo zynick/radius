@@ -6,7 +6,12 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
 
     username: { type: String, required: true, index: true },
-    password: String
+    password: String,
+
+    // what other info do you wanna add it in (for logging purpose)?
+    company: String,
+    nasId: String,
+    created: { type: Date, default: Date.now }
 
 }, {
     versionKey: false,

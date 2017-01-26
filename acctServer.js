@@ -29,7 +29,7 @@ glob.sync('./models/*.js')
         require(model);
     });
 
-const AccountingInsert = mongoose.model('AccountingInsert');
+const Accounting = mongoose.model('Accounting');
 
 
 /* Start Server */
@@ -61,15 +61,15 @@ server.on('message', (message, rinfo) => {
 
     log(`packet: ${JSON.stringify(packet)}`);
 
-    // TODO need to process to drop duplicate identifier
-    // TODO need to process to drop duplicate identifier
-    // TODO need to process to drop duplicate identifier
+    // TODO drop packet if packet identifier repeated
+
+    // TODO TRACK ACCOUNTING JSON FROM MIKROTIK
 
     const attributes = packet.attributes;
     const acctStatusType = attributes['Acct-Status-Type'];
     const acctSessionId = attributes['Acct-Session-Id'];
 
-    function sendResponse(code) {
+    const sendResponse = (code) => {
         const response = radius.encode_response({ packet, code, secret });
 
         server.send(response, 0, response.length, rinfo.port, rinfo.address, (err, bytes) => {
@@ -78,7 +78,7 @@ server.on('message', (message, rinfo) => {
             }
             log(`packet ${packet.identifier} responded`);
         });
-    }
+    };
 
     switch (acctStatusType) {
         case 'Start':
@@ -86,7 +86,7 @@ server.on('message', (message, rinfo) => {
         case 'Interim-Update':
         case 'Accounting-On':
         case 'Accounting-Off':
-            const acct = new AccountingInsert({
+            const acct = new Accounting({
                 // attributes['Event-Timestamp'] is add-on attribute from coova-chilli,
                 // so we will not going to bother overwriting it to date
                 date: Date.now(),

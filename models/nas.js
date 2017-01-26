@@ -5,9 +5,9 @@ const Schema = mongoose.Schema;
 
 const nasSchema = new Schema({
 
-    id: { type: String, required: true, index: true, unique: true},
+    // MAC address will be the NAS id
+    id: { type: String, required: true, index: true, unique: true },
     company: { type: String, index: true },
-    mac: { type: String, index: true },
 
     secret: String,
     lastseen: Date

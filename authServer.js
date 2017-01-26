@@ -5,6 +5,7 @@
  * https://tools.ietf.org/html/rfc2865
  */
 
+const async = require('async');
 const md5 = require('blueimp-md5');
 const debug = require('debug');
 const dgram = require('dgram');
@@ -32,18 +33,7 @@ glob.sync('./models/*.js')
 
 const Users = mongoose.model('Users');
 const NAS = mongoose.model('NAS');
-
-// get list of nas from db
-let nasList = {};
-NAS.find({}, (err, docs) {
-    if (err) {
-        throw (err);
-    }
-    let list = {};
-    docs.forEach((doc) {
-        nasList[doc.mac] = true;
-    });
-});
+const Companies = mongoose.model('Companies');
 
 
 
@@ -53,110 +43,166 @@ server.on('listening', () => {
     log(`listening on ${address.address}:${address.port}`);
 });
 
-
-function decodePacket(rawPacket, next) {
-    try {
-        const packet = radius.decode({ packet: rawPacket, secret });
-        return next(null, packet);
-    } catch (error) {
-        if (error instanceof InvalidSecretError) {
-            return log('drop invalid secret message');
-        } else {
-            throw err; // server error
-        }
-    }
-}
-
-function sendResponse(packet, code) {
+const sendResponse = (packet, code, next) => {
     const res = radius.encode_response({ packet, code, secret });
 
     server.send(res, 0, res.length, rinfo.port, rinfo.address,
         (err, bytes) => {
-            if (err) {
-                logError(err);
-            }
+            if (err) { next(err); }
             log(`packet ${packet.identifier} responded: ${code}`);
         });
-}
+};
 
-function requestPassword(packet, username, password) {
-    // TODO FIXME cheapo way to store password (plain text). please store properly.
-    Users.findOne({ username, password },
-        (err, user) => {
-            if (err) {
-                return logError(err);
-            }
-            const code = user ? 'Access-Accept' : 'Access-Reject';
-            return sendResponse(packet, code);
-        });
-}
-
-function requestCHAP(packet, username, chapPassword) {
+const authorizeCHAP = (packet, username, chapPassword, next) => {
     const challenge = packet.attributes['CHAP-Challenge'];
     if (!challenge || challenge.length !== 16) {
-        return logError(new Error('Invalid CHAP-Challenge.'));
+        return next(new Error('Invalid CHAP-Challenge.'));
     }
 
     // first byte is chap-id from mikrotik
     if (chapPassword.length !== 17) {
-        return logError(new Error('Invalid CHAP-Password.'));
+        return next(new Error('Invalid CHAP-Password.'));
     }
-    const _chapPassword = chapPassword.slice(1).toString('hex');
-
+    
     Users.findOne({ username },
         (err, user) => {
             if (err) {
-                return logError(err);
+                return next(err);
             }
             if (!user) {
-                return sendResponse(packet, 'Access-Reject');
+                return sendResponse(packet, 'Access-Reject', next);
             }
 
-            const hashed = md5(user.password + challenge.toString('binary'));
-            const code = hashed === _chapPassword ? 'Access-Accept' : 'Access-Reject';
-            return sendResponse(packet, code);
-        });
-}
+            const chapIdBin = chapPassword.slice(0, 1).toString('binary');
+            const challengeBin = challenge.toString('binary');
+            const hashed = md5(chapIdBin + user.password + challengeBin);
 
-function requestState(packet, username, state) {
-    logError(new Error(`Access-Request with State is not impemented.`));
-}
+            const chapPasswordHex = chapPassword.slice(1).toString('hex');
+
+            const code = hashed === chapPasswordHex ? 'Access-Accept' : 'Access-Reject';
+            sendResponse(packet, code, next);
+        });
+};
+
+const authorizePassword = (packet, username, password, next) => {
+    Users.findOne({ username, password },
+        (err, user) => {
+            if (err) {
+                return next(err);
+            }
+            const code = user ? 'Access-Accept' : 'Access-Reject';
+            sendResponse(packet, code, next);
+        });
+};
+
+const authorizeState = (packet, username, state, next) => {
+    // never comes here because 'State' rely on 'Termination-Action',
+    // and server didn't implement 'Termination-Action' upon 'Access-Accept' response.
+    // https://tools.ietf.org/html/rfc2865#section-5.24
+    next(new Error(`Access-Request with State is not impemented.`));
+};
+
+const stackDecode = (rawPacket, next) => {
+    try {
+        const packet = radius.decode({ packet: rawPacket, secret });
+        log(`packet: ${JSON.stringify(packet)}`);
+        next(null, packet);
+    } catch (error) {
+        if (error instanceof InvalidSecretError) {
+            log('drop invalid secret message');
+        } else {
+            next(err);
+        }
+    }
+};
+
+const stackValidateIdentifier = (packet, next) => {
+    // TODO drop packet if packet identifier repeated
+    next(null, packet);
+};
+
+const stackValidateRequest = (packet, next) => {
+    if (packet.code === 'Access-Request') {
+        next(null, packet);
+    } else {
+        log(`drop invalid packet code ${packet.code}`);
+    }
+};
+
+const stackValidateMAC = (packet, next) => {
+    const id = packet.attributes['Calling-Station-Id'];
+    NAS.findOne(
+        { id },
+        (err, nas) => {
+            if (err) {
+                next(err);
+            } else if (nas) {
+                next(null, packet, nas.company);
+            } else {
+                log(`drop invalid packet Calling-Station-Id(MAC) ${mac}`);
+            }
+        });
+};
+
+const stackGetCompanySettings = (packet, companyId, next) => {
+    Companies.findOne(
+        { id: companyId },
+        (err, company) => {
+            if (err) {
+                return next(err);
+            }
+            if (!company) {
+                return next(new Error('Company not found'));
+            }
+
+            const { guest, email } = company.login;
+
+            // TODO how does guest auth works? does guest needs go thru authServer?
+
+            // TODO email auth - CHAP-Password / User-Password
+
+            // TODO how does [social-media] auth works?
+
+            next(null, packet);
+        });
+};
+
+const stackAuthorization = (packet, next) => {
+    const {
+        ['User-Name']: username,
+        ['CHAP-Password']: chapPassword,
+        ['User-Password']: password,
+        ['State']: state
+    } = packet.attributes;
+
+    if (chapPassword) {
+        authorizeCHAP(packet, username, chapPassword);
+    } else if (password) {
+        authorizePassword(packet, username, password);
+    } else if (state) {
+        authorizeState(packet, username, state);
+    } else {
+        // https://tools.ietf.org/html/rfc2865#section-4.1
+        next(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
+    }
+};
 
 server.on('message', (rawPacket, rinfo) => {
     // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
 
-    decodePacket(rawPacket, (err, packet) => {
-
-        log(`packet: ${JSON.stringify(packet)}`);
-
-        // TODO need to process to drop duplicate identifier
-        // TODO need to process to drop duplicate identifier
-        // TODO need to process to drop duplicate identifier
-
-        if (packet.code !== 'Access-Request') {
-            return log(`drop invalid packet code ${packet.code}`);
+    async.waterfall([
+        stackDecode,
+        stackValidateIdentifier,
+        stackValidateRequest,
+        stackValidateMAC,
+        stackGetCompanySettings,
+        stackAuthorization
+    ], (err) => {
+        if (err) {
+            logError(err);
         }
-
-        // TODO mac validation using nasList
-        // TODO mac validation using nasList
-        // TODO mac validation using nasList
-
-        const {
-            ['User-Name']: username, ['User-Password']: password, ['CHAP-Password']: chapPassword, ['State']: state
-        } = packet.attributes;
-
-        if (password) {
-            requestPassword(packet, username, password);
-        } else if (chapPassword) {
-            requestCHAP(packet, username, chapPassword);
-        } else if (state) {
-            requestState(packet, username, state);
-        } else {
-            // https://tools.ietf.org/html/rfc2865#section-4.1
-            logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
-        }
-
     });
+
 });
 
 server.on('error', (err) => {
