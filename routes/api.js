@@ -19,45 +19,37 @@ function routeTokenValidation(req, res, next) {
 }
 
 function routeAPRegister(req, res, next) {
-    const { name, company, mac, secret } = req.body;
+    const { id } = req.body;
 
-    if (!name || !company || !mac || !secret) {
-        const err = new Error('"name|company|mac|secret" parameter does not exist');
+    if (!id) {
+        const err = new Error('"id" parameter does not exist');
         err.status = 400;
         return next(err);
     }
 
-    NAS.findOne({ name, company }, (err, nas) => {
-        if (err) {
-            return next(err);
-        }
-
-        if (nas) {
-            nas.mac = mac;
-            nas.secret = secret;
-        } else {
-            nas = new NAS({ name, company, mac, secret });
-        }
-
-        nas.save((err) => {
-            if (err) {
-                return next(err);
-            }
-
+    NAS.findOneAndUpdate(
+        { id },
+        req.body,
+        { upsert: true },
+        (err, doc) => {
+            if (err) { return next(err); }
             res.status(200).end();
         });
-    });
-
 }
 
 function routeAPStatus(req, res, next) {
-    const { name, company } = req.query;
+    const { id } = req.query;
 
-    NAS.findOne({ name, company }, (err, nas) => {
+    if (!id) {
+        const err = new Error('"id" parameter does not exist');
+        err.status = 400;
+        return next(err);
+    }
+
+    NAS.findOne({ id }, (err, nas) => {
         if (err) {
             return next(err);
         }
-
         if (!nas) {
             const err = new Error('Not found');
             err.status = 404;

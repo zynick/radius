@@ -4,12 +4,10 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-    username: {
-        type: String,
-        required: true,
-        index: true
-    },
+
+    username: { type: String, required: true, index: true },
     password: String
+
 }, {
     versionKey: false,
     collection: 'users',
