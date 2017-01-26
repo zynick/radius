@@ -1,9 +1,5 @@
 'use strict';
 
-// TODO implement CHAP via https://www.npmjs.com/package/chap !!!!
-// TODO implement CHAP via https://www.npmjs.com/package/chap !!!!
-// TODO implement CHAP via https://www.npmjs.com/package/chap !!!!
-
 /*
  * RADIUS Authentication
  * https://tools.ietf.org/html/rfc2865
