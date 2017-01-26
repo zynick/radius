@@ -31,6 +31,20 @@ glob.sync('./models/*.js')
     });
 
 const Users = mongoose.model('Users');
+const NAS = mongoose.model('NAS');
+
+// get list of nas from db
+let nasList = {};
+NAS.find({}, (err, docs) {
+    if (err) {
+        throw (err);
+    }
+    let list = {};
+    docs.forEach((doc) {
+        nasList[doc.mac] = true;
+    });
+});
+
 
 
 /* Start Server */
@@ -39,111 +53,110 @@ server.on('listening', () => {
     log(`listening on ${address.address}:${address.port}`);
 });
 
-server.on('message', (message, rinfo) => {
-    // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
 
-    let packet;
+function decodePacket(rawPacket, next) {
     try {
-        packet = radius.decode({
-            packet: message,
-            secret
-        });
+        const packet = radius.decode({ packet: rawPacket, secret });
+        return next(null, packet);
     } catch (error) {
         if (error instanceof InvalidSecretError) {
             return log('drop invalid secret message');
         } else {
-            throw error;
+            throw err; // server error
         }
     }
+}
 
-    log(`packet: ${JSON.stringify(packet)}`);
+function sendResponse(packet, code) {
+    const res = radius.encode_response({ packet, code, secret });
 
-    // TODO need to process to drop duplicate identifier
-    // TODO need to process to drop duplicate identifier
-    // TODO need to process to drop duplicate identifier
+    server.send(res, 0, res.length, rinfo.port, rinfo.address,
+        (err, bytes) => {
+            if (err) {
+                logError(err);
+            }
+            log(`packet ${packet.identifier} responded: ${code}`);
+        });
+}
 
-    function sendResponse(code) {
-        const res = radius.encode_response({ packet, code, secret });
+function requestPassword(packet, username, password) {
+    // TODO FIXME cheapo way to store password (plain text). please store properly.
+    Users.findOne({ username, password },
+        (err, user) => {
+            if (err) {
+                return logError(err);
+            }
+            const code = user ? 'Access-Accept' : 'Access-Reject';
+            return sendResponse(packet, code);
+        });
+}
 
-        server.send(res, 0, res.length, rinfo.port, rinfo.address,
-            (err, bytes) => {
-                if (err) {
-                    logError(err);
-                }
-                log(`packet ${packet.identifier} responded: ${code}`);
-            });
+function requestCHAP(packet, username, chapPassword) {
+    const challenge = packet.attributes['CHAP-Challenge'];
+    if (!challenge || challenge.length !== 16) {
+        return logError(new Error('Invalid CHAP-Challenge.'));
     }
 
-    function requestPassword(username, password) {
-        // TODO FIXME cheapo way to store password (plain text). please store properly.
-        Users.findOne({ username, password },
-            (err, user) => {
-                if (err) {
-                    return logError(err);
-                }
-                const code = user ? 'Access-Accept' : 'Access-Reject';
-                return sendResponse(code);
-            });
+    // first byte is chap-id from mikrotik
+    if (chapPassword.length !== 17) {
+        return logError(new Error('Invalid CHAP-Password.'));
     }
+    const _chapPassword = chapPassword.slice(1).toString('hex');
 
-    function requestCHAP(username, chapPassword) {
-        const challenge = packet.attributes['CHAP-Challenge'];
-        if (!challenge || challenge.length !== 16) {
-            return logError(new Error('Invalid CHAP-Challenge.'));
-        }
-
-        // first byte is chap-id from mikrotik
-        if (chapPassword.length !== 17) {
-            return logError(new Error('Invalid CHAP-Password.'));
-        }
-        const _chapPassword = chapPassword.slice(1).toString('hex');
-
-        Users.findOne({
-            username
-        }, (err, user) => {
+    Users.findOne({ username },
+        (err, user) => {
             if (err) {
                 return logError(err);
             }
             if (!user) {
-                return sendResponse('Access-Reject');
+                return sendResponse(packet, 'Access-Reject');
             }
 
             const hashed = md5(user.password + challenge.toString('binary'));
             const code = hashed === _chapPassword ? 'Access-Accept' : 'Access-Reject';
-            return sendResponse(code);
+            return sendResponse(packet, code);
         });
-    }
+}
 
-    function requestState(username, state) {
-        return logError(new Error(`Access-Request with State is not impemented.`));
-    }
+function requestState(packet, username, state) {
+    logError(new Error(`Access-Request with State is not impemented.`));
+}
 
+server.on('message', (rawPacket, rinfo) => {
+    // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
 
+    decodePacket(rawPacket, (err, packet) => {
 
-    if (packet.code !== 'Access-Request') {
-        return log(`drop invalid packet code ${packet.code}`);
-    }
+        log(`packet: ${JSON.stringify(packet)}`);
 
-    const username = packet.attributes['User-Name'];
-    // must have either one
-    const password = packet.attributes['User-Password'];
-    const chapPassword = packet.attributes['CHAP-Password'];
-    const state = packet.attributes['State'];
+        // TODO need to process to drop duplicate identifier
+        // TODO need to process to drop duplicate identifier
+        // TODO need to process to drop duplicate identifier
 
-    if (password) {
-        requestPassword(username, password);
+        if (packet.code !== 'Access-Request') {
+            return log(`drop invalid packet code ${packet.code}`);
+        }
 
-    } else if (chapPassword) {
-        requestCHAP(username, chapPassword);
+        // TODO mac validation using nasList
+        // TODO mac validation using nasList
+        // TODO mac validation using nasList
 
-    } else if (state) {
-        requestState(username, state);
+        const {
+            ['User-Name']: username, ['User-Password']: password, ['CHAP-Password']: chapPassword, ['State']: state
+        } = packet.attributes;
 
-    } else {
-        // https://tools.ietf.org/html/rfc2865#section-4.1
-        return logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
-    }
+        if (password) {
+            requestPassword(packet, username, password);
+        } else if (chapPassword) {
+            requestCHAP(packet, username, chapPassword);
+        } else if (state) {
+            requestState(packet, username, state);
+        } else {
+            // https://tools.ietf.org/html/rfc2865#section-4.1
+            logError(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
+        }
 
+    });
 });
 
 server.on('error', (err) => {

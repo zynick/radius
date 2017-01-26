@@ -6,8 +6,9 @@ const Schema = mongoose.Schema;
 const nasSchema = new Schema({
 
     id: { type: String, required: true, index: true, unique: true},
-    company: String,
-    mac: String,
+    company: { type: String, index: true },
+    mac: { type: String, index: true },
+
     secret: String,
     lastseen: Date
 

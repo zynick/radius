@@ -46,7 +46,7 @@ if (isProd) {
     router.all('/', routeMainDebug);
 }
 router.use('/api', require('./api'));
-router.use(routeNotFound);
+router.use(routeNotFound);             // TODO change make routeBadRequest?
 router.use(routeErrorHandlerJSON);
 
 
