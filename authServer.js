@@ -33,7 +33,7 @@ glob.sync('./models/*.js')
 
 const Users = mongoose.model('Users');
 const NAS = mongoose.model('NAS');
-const Companies = mongoose.model('Companies');
+const Locations = mongoose.model('Locations');
 
 
 
@@ -137,25 +137,25 @@ const stackValidateMAC = (packet, next) => {
             if (err) {
                 next(err);
             } else if (nas) {
-                next(null, packet, nas.company);
+                next(null, packet, nas.location);
             } else {
                 log(`drop invalid packet Calling-Station-Id(MAC) ${mac}`);
             }
         });
 };
 
-const stackGetCompanySettings = (packet, companyId, next) => {
-    Companies.findOne(
-        { id: companyId },
-        (err, company) => {
+const stackGetLocationSettings = (packet, locationId, next) => {
+    Locations.findOne(
+        { id: locationId },
+        (err, location) => {
             if (err) {
                 return next(err);
             }
-            if (!company) {
-                return next(new Error('Company not found'));
+            if (!location) {
+                return next(new Error('Location not found'));
             }
 
-            const { guest, email } = company.login;
+            const { guest, email } = location.login;
 
             // TODO how does guest auth works? does guest needs go thru authServer?
 
@@ -195,7 +195,7 @@ server.on('message', (rawPacket, rinfo) => {
         stackValidateIdentifier,
         stackValidateRequest,
         stackValidateMAC,
-        stackGetCompanySettings,
+        stackGetLocationSettings,
         stackAuthorization
     ], (err) => {
         if (err) {

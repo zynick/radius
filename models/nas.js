@@ -7,7 +7,7 @@ const nasSchema = new Schema({
 
     // MAC address will be the NAS id
     id: { type: String, required: true, index: true, unique: true },
-    company: { type: String, index: true },
+    location: { type: String, index: true },
 
     secret: String,
     lastseen: Date
