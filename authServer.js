@@ -33,7 +33,6 @@ glob.sync('./models/*.js')
 
 const Users = mongoose.model('Users');
 const NAS = mongoose.model('NAS');
-const Locations = mongoose.model('Locations');
 
 
 
@@ -137,34 +136,23 @@ const stackValidateMAC = (packet, next) => {
             if (err) {
                 next(err);
             } else if (nas) {
-                next(null, packet, nas.location);
+                next(null, packet, nas);
             } else {
                 log(`drop invalid packet Calling-Station-Id(MAC) ${mac}`);
             }
         });
 };
 
-const stackGetLocationSettings = (packet, locationId, next) => {
-    Locations.findOne(
-        { id: locationId },
-        (err, location) => {
-            if (err) {
-                return next(err);
-            }
-            if (!location) {
-                return next(new Error('Location not found'));
-            }
+const stackNASSettings = (packet, nas, next) => {
+    const { guest, email } = nas.login;
 
-            const { guest, email } = location.login;
+    // TODO how does guest auth works? does guest needs go thru authServer?
 
-            // TODO how does guest auth works? does guest needs go thru authServer?
+    // TODO email auth - CHAP-Password / User-Password
 
-            // TODO email auth - CHAP-Password / User-Password
+    // TODO how does [social-media] auth works?
 
-            // TODO how does [social-media] auth works?
-
-            next(null, packet);
-        });
+    next(null, packet);
 };
 
 const stackAuthorization = (packet, next) => {
@@ -195,7 +183,7 @@ server.on('message', (rawPacket, rinfo) => {
         stackValidateIdentifier,
         stackValidateRequest,
         stackValidateMAC,
-        stackGetLocationSettings,
+        stackNASSettings,
         stackAuthorization
     ], (err) => {
         if (err) {
