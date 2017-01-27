@@ -6,12 +6,12 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
 
     username: { type: String, required: true, index: true },
-    location: { type: String, index: true },
+    organization: { type: String, index: true },
 
     password: String,   // TODO encrypt the password with bcrypt?
 
     // what other info do you wanna add it in (for logging purpose)?
-    nasId: String,
+    nas: String,
     created: { type: Date, default: Date.now }
 
 }, {

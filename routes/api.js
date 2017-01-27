@@ -16,7 +16,7 @@ const routeTokenValidation = (req, res, next) => {
     next();
 };
 
-const routeAPRegister = (req, res, next) => {
+const routeNAS = (req, res, next) => {
     const { id } = req.body;
 
     if (!id) {
@@ -35,7 +35,7 @@ const routeAPRegister = (req, res, next) => {
         });
 };
 
-const routeAPStatus = (req, res, next) => {
+const routeNASStatus = (req, res, next) => {
     const { id } = req.query;
 
     if (!id) {
@@ -62,8 +62,8 @@ const routeAPStatus = (req, res, next) => {
 
 
 router.use(routeTokenValidation);
-router.post('/ap/register', routeAPRegister);
-router.get('/ap/status', routeAPStatus);
+router.post('/nas', routeNAS);
+router.get('/nas/status', routeNASStatus);
 
 
 module.exports = router;
