@@ -179,6 +179,7 @@ server.on('message', (rawPacket, rinfo) => {
     // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
 
     async.waterfall([
+        (next) => next(null, rawPacket),
         stackDecode,
         stackValidateIdentifier,
         stackValidateRequest,
