@@ -101,6 +101,12 @@ const authorizeState = (packet, rinfo, username, state, next) => {
     next(new Error(`Access-Request with State is not impemented.`));
 };
 
+const authorizeGuest = (packet, rinfo, username, next) => {
+    // verify mikrotik username format
+    const code = (username.length === 19 && username.indexOf('T-') === 0) ? 'Access-Accept' : 'Access-Reject';
+    sendResponse(packet, rinfo, code, next);
+};
+
 const stackDecodePacket = (rawPacket, rinfo, next) => {
     try {
         const packet = radius.decode({ packet: rawPacket, secret });
@@ -163,12 +169,14 @@ const stackAuthorization = (packet, rinfo, next) => {
         ['State']: state
     } = packet.attributes;
 
-    if (chapPassword !== undefined) {
-        authorizeCHAP(packet, rinfo, username, chapPassword);
-    } else if (password !== undefined) {
-        authorizePassword(packet, rinfo, username, password);
-    } else if (state !== undefined) {
-        authorizeState(packet, rinfo, username, state);
+    if (chapPassword) {
+        authorizeCHAP(packet, rinfo, username, chapPassword, next);
+    } else if (password) {
+        authorizePassword(packet, rinfo, username, password, next);
+    } else if (state) {
+        authorizeState(packet, rinfo, username, state, next);
+    } else if (password === '') {
+        authorizeGuest(packet, rinfo, username, next);
     } else {
         // https://tools.ietf.org/html/rfc2865#section-4.1
         next(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
