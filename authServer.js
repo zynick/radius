@@ -106,8 +106,8 @@ const stackDecode = (rawPacket, next) => {
         const packet = radius.decode({ packet: rawPacket, secret });
         log(`packet: ${JSON.stringify(packet)}`);
         next(null, packet);
-    } catch (error) {
-        if (error instanceof InvalidSecretError) {
+    } catch (err) {
+        if (err instanceof InvalidSecretError) {
             log('drop invalid secret message');
         } else {
             next(err);
