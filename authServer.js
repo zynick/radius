@@ -195,9 +195,7 @@ server.on('message', (rawPacket, rinfo) => {
         stackNASSettings,
         stackAuthorization
     ], (err) => {
-        if (err) {
-            logError(err);
-        }
+        if (err) { logError(err); }
     });
 
 });

@@ -54,7 +54,7 @@ const routeNASStatus = (req, res, next) => {
             return next(err);
         }
 
-        const lastseen = nas.lastseen ? nast.lastseen.getTime() : -1;
+        const lastseen = nas.lastseen ? nas.lastseen.getTime() : -1;
         res.status(200).json({ lastseen });
     });
 };
