@@ -129,7 +129,7 @@ const stackValidateRequest = (packet, next) => {
 };
 
 const stackValidateMAC = (packet, next) => {
-    const id = packet.attributes['Calling-Station-Id'];
+    const id = packet.attributes['NAS-Identifier'];
     NAS.findOne(
         { id },
         (err, nas) => {
@@ -138,7 +138,7 @@ const stackValidateMAC = (packet, next) => {
             } else if (nas) {
                 next(null, packet, nas);
             } else {
-                log(`drop invalid packet Calling-Station-Id(MAC) ${mac}`);
+                log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
             }
         });
 };
