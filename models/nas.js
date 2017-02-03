@@ -5,16 +5,16 @@ const Schema = mongoose.Schema;
 
 const nasSchema = new Schema({
 
-    // MAC address will be the NAS id
     id: { type: String, required: true, index: true, unique: true },
-    organization: { type: String, index: true },
+    organization: { type: String, required: true, index: true },
 
-    // sample format:
-    // { enabled: true, email: true, facebook: true, google: true, ... }
-    login: Schema.Types.Mixed,
+    login: {
+        email: { type: Boolean, required: true },
+        guest: Boolean
+    },
 
     assets: {
-        logo: String,
+        logo: { type: String, required: true },
         url: String,
         slogan: String
     },
