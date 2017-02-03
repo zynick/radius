@@ -14,15 +14,14 @@ const { mongo } = require('./config.json');
 
 
 /* Initialize Database */
+mongoose.Promise = global.Promise;
 mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
-mongoose.connection.on('error', (err) => {
+mongoose.connection.on('error', err => {
     logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
     logError(err);
 });
 glob.sync('./models/*.js')
-    .forEach((model) => {
-        require(model);
-    });
+    .forEach(model => require(model));
 
 
 /* Initialize Express */
