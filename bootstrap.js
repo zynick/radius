@@ -2,14 +2,12 @@
 
 const async = require('async');
 const debug = require('debug');
-const dgram = require('dgram');
 const glob = require('glob');
 const mongoose = require('mongoose');
 
 const log = debug('bootstrap:server');
 const logError = debug('bootstrap:error');
-const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE } = require('./config.js');
-const server = dgram.createSocket('udp4');
+const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE, NODE_ENV } = require('./config.js');
 
 
 /* Initialize Database */
@@ -22,9 +20,9 @@ mongoose.connection.on('error', err => {
 glob.sync('./models/*.js')
     .forEach(model => require(model));
 
-
 const Users = mongoose.model('Users');
 const NAS = mongoose.model('NAS');
+
 
 async.parallel([
     next => {
@@ -43,16 +41,18 @@ async.parallel([
             })
             .save()
             .then(nas => {
-                const message = 'Bootstrap NAS has been created.';
-                next(null, true);
+                log('Bootstrap NAS has been created.');
+                next();
             })
             .catch(err => {
-                // logError(JSON.stringify(err, null, 2));
                 logError(err.message);
-                next(null, false);
+                next();
             });
     },
     next => {
+        if (NODE_ENV === 'production') {
+            return next();
+        }
         new Users({
                 username: 'aaa',
                 password: 'fd635cf7502be9481f2f315d2c0e816fe87ea54da9d862d04ea383a81064a9a8', // bbb?
@@ -60,16 +60,14 @@ async.parallel([
             })
             .save()
             .then(user => {
-                const message = 'Bootstrap User has been created.';
-                next(null, true);
+                log('Bootstrap User has been created.');
+                next();
             })
             .catch(err => {
-                // logError(JSON.stringify(err, null, 2));
                 logError(err.message);
-                next(null, false);
+                next();
             });
     }
-], (err, result) => {
-    log(`${result[0]}, ${result[1]}`);
+], () => {
     mongoose.connection.close();
 });
