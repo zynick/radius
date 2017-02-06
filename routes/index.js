@@ -2,7 +2,8 @@
 
 const router = require('express').Router();
 const log = require('debug')('web:routes');
-const isProd = process.env.NODE_ENV === 'production';
+const { NODE_ENV } = require('../config.js');
+const isProduction = NODE_ENV === 'production';
 const { version } = require('../package.json');
 
 
@@ -32,7 +33,7 @@ const routeErrorHandlerJSON = (err, req, res, next) => {
     const { status = 500, message = 'Internal Server Error' } = err;
     const error = { status, message };
     // hide stacktrace in production, show otherwise
-    if (!isProd) { error.stack = err.stack; }
+    if (!isProduction) { error.stack = err.stack; }
     res
         .status(status)
         .json({ error });
@@ -40,7 +41,7 @@ const routeErrorHandlerJSON = (err, req, res, next) => {
 
 
 
-if (isProd) {
+if (isProduction) {
     router.get('/', routeMain);
 } else {
     router.all('/', routeMainDebug);

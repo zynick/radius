@@ -3,6 +3,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const { NODE_ENV } = require('../config.js');
 const Schema = mongoose.Schema;
 
 const accountingSchema = new Schema({
@@ -16,7 +17,7 @@ const accountingSchema = new Schema({
 }, {
     versionKey: false,
     collection: 'accounting',
-    autoIndex: process.env.NODE_ENV !== 'production'
+    autoIndex: NODE_ENV !== 'production'
 });
 
 mongoose.model('Accounting', accountingSchema);

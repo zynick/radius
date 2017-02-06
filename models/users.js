@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
+const { NODE_ENV } = require('../config.js');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
@@ -27,7 +28,7 @@ const userSchema = new Schema({
 }, {
     versionKey: false,
     collection: 'users',
-    autoIndex: process.env.NODE_ENV !== 'production'
+    autoIndex: NODE_ENV !== 'production'
 });
 
 userSchema.index({ organization: 1, username: 1 }, { unique: 'Username already exists.' });

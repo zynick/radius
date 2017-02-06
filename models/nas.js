@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const { NODE_ENV } = require('../config.js');
 const Schema = mongoose.Schema;
 
 const nasSchema = new Schema({
@@ -25,7 +26,7 @@ const nasSchema = new Schema({
 }, {
     versionKey: false,
     collection: 'nas',
-    autoIndex: process.env.NODE_ENV !== 'production'
+    autoIndex: NODE_ENV !== 'production'
 });
 
 mongoose.model('NAS', nasSchema);
