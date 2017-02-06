@@ -13,15 +13,15 @@ const mongoose = require('mongoose');
 
 const log = debug('acct:server');
 const logError = debug('acct:error');
-const { mongo } = require('./config.json');
+const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE } = require('./config.js');
 const server = dgram.createSocket('udp4');
 
 
 /* Initialize Database */
 mongoose.Promise = global.Promise;
-mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.database}`);
+mongoose.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}`);
 mongoose.connection.on('error', err => {
-    logError(`unable to connect to database at ${mongo.host}:${mongo.port}/${mongo.database}`);
+    logError(`unable to connect to database at ${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}`);
     logError(err);
 });
 glob.sync('./models/*.js')

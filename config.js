@@ -8,7 +8,7 @@ const {
     MONGO_DATABASE = 'radius',
 
     NODE_ENV = 'development',
-    PORT = 3000,
+    PORT = 3001,
 
     SECRET_KEY = 'mikrotiksecret'
 } = process.env;
@@ -20,5 +20,5 @@ module.exports = {
     MONGO_DATABASE,
     NODE_ENV,
     PORT,
-    SECRET_KEY, // we will have a global secret key for now
+    SECRET_KEY // we will have a global secret key for now
 };

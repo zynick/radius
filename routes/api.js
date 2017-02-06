@@ -3,12 +3,12 @@
 const mongoose = require('mongoose');
 const router = require('express').Router();
 const NAS = mongoose.model('NAS');
-const { apiToken } = require('../config.json');
+const { API_TOKEN } = require('../config.js');
 
 
 const routeTokenValidation = (req, res, next) => {
     const { authorization } = req.headers;
-    if (authorization !== `Bearer ${apiToken}`) {
+    if (authorization !== `Bearer ${API_TOKEN}`) {
         const err = new Error('Unauthorized');
         err.status = 401;
         return next(err);

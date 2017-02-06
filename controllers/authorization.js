@@ -9,7 +9,7 @@ const radius = require('radius');
 
 const log = debug('auth:server');
 const logError = debug('auth:error');
-const { secret } = require('../config.json');
+const { SECRET_KEY } = require('../config.js');
 const Users = mongoose.model('Users');
 const NAS = mongoose.model('NAS');
 const { InvalidSecretError } = radius;
@@ -18,7 +18,7 @@ const { InvalidSecretError } = radius;
 module.exports = server => {
 
     const sendResponse = (packet, { port, address }, code, next) => {
-        const res = radius.encode_response({ packet, code, secret });
+        const res = radius.encode_response({ packet, code, SECRET_KEY });
 
         server.send(res, 0, res.length, port, address,
             (err, bytes) => {
@@ -99,7 +99,7 @@ module.exports = server => {
 
     const stackDecodePacket = (rawPacket, rinfo, next) => {
         try {
-            const packet = radius.decode({ packet: rawPacket, secret });
+            const packet = radius.decode({ packet: rawPacket, SECRET_KEY });
             log(`packet: ${JSON.stringify(packet)}`);
             next(null, packet, rinfo);
         } catch (err) {
