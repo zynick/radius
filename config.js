@@ -1,13 +1,16 @@
 'use strict';
 
 const {
-    SECRET_KEY = 'mikrotiksecret',
     API_TOKEN  = 'uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI',
+
     MONGO_HOST = 'localhost',
     MONGO_PORT = 27017,
     MONGO_DATABASE = 'radius',
+
     NODE_ENV = 'development',
-    PORT = 3000
+    PORT = 3000,
+
+    SECRET_KEY = 'mikrotiksecret'
 } = process.env;
 
 module.exports = {
