@@ -5,8 +5,7 @@ const debug = require('debug');
 const glob = require('glob');
 const mongoose = require('mongoose');
 
-const log = debug('bootstrap:server');
-const logError = debug('bootstrap:error');
+const log = debug('bootstrap');
 const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE, NODE_ENV } = require('./config.js');
 
 
@@ -14,8 +13,8 @@ const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE, NODE_ENV } = require('./config.j
 mongoose.Promise = global.Promise;
 mongoose.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}`);
 mongoose.connection.on('error', err => {
-    logError(`unable to connect to database at ${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}`);
-    logError(err);
+    log(`unable to connect to database at ${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}`);
+    log(err);
 });
 glob.sync('./models/*.js')
     .forEach(model => require(model));
@@ -39,13 +38,8 @@ async.parallel([
                     slogan: 'Welcome to ACE Guest WiFi'
                 }
             })
-            .save()
-            .then(nas => {
-                log('Bootstrap NAS has been created.');
-                next();
-            })
-            .catch(err => {
-                logError(err.message);
+            .save((err = {}, user) => {
+                log(err.message || 'Bootstrap NAS has been created.');
                 next();
             });
     },
@@ -58,13 +52,8 @@ async.parallel([
                 password: 'fd635cf7502be9481f2f315d2c0e816fe87ea54da9d862d04ea383a81064a9a8', // bbb?
                 organization: 'ace-tide'
             })
-            .save()
-            .then(user => {
-                log('Bootstrap User has been created.');
-                next();
-            })
-            .catch(err => {
-                logError(err.message);
+            .save((err = {}, user) => {
+                log(err.message || 'Bootstrap User has been created.');
                 next();
             });
     }
