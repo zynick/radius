@@ -10,22 +10,14 @@ const mongoose = require('mongoose');
 
 const log = debug('wapi:server');
 const logError = debug('wapi:error');
-const {
-    MONGO_USER,
-    MONGO_PASS,
-    MONGO_HOST,
-    MONGO_PORT,
-    MONGO_DB,
-    WEB_PORT
-} = require('./config.js');
+const { MONGO, WEB_PORT } = require('./config.js');
 
 
 /* Initialize Database */
 mongoose.Promise = global.Promise;
-// mongoose.connect(`mongodb://${MONGO_USER}:${MONGO_PASS}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
-mongoose.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
+mongoose.connect(`mongodb://${MONGO}`);
 mongoose.connection.on('error', err => {
-    logError(`unable to connect to database at ${MONGO_USER}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
+    logError(`unable to connect to database at ${MONGO}`);
     logError(err);
 });
 glob.sync('./models/*.js')
@@ -40,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/', require('./routes'));
 
 // normalize environment port into a number, string (named pipe), or false.
-const normalizePort = (val) => {
+const normalizePort = val => {
     const port = parseInt(val, 10);
     if (isNaN(port)) {
         return val;

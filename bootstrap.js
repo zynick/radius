@@ -6,22 +6,14 @@ const glob = require('glob');
 const mongoose = require('mongoose');
 
 const log = debug('boot');
-const {
-    MONGO_USER,
-    MONGO_PASS,
-    MONGO_HOST,
-    MONGO_PORT,
-    MONGO_DB,
-    NODE_ENV
-} = require('./config.js');
+const { MONGO, NODE_ENV } = require('./config.js');
 
 
 /* Initialize Database */
 mongoose.Promise = global.Promise;
-// mongoose.connect(`mongodb://${MONGO_USER}:${MONGO_PASS}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
-mongoose.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
+mongoose.connect(`mongodb://${MONGO}`);
 mongoose.connection.on('error', err => {
-    log(`unable to connect to database at ${MONGO_USER}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
+    log(`unable to connect to database at ${MONGO}`);
     log(err);
 });
 glob.sync('./models/*.js')
