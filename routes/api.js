@@ -59,11 +59,16 @@ const routeNASStatus = (req, res, next) => {
     });
 };
 
+const routeBadRequest = (req, res, next) => {
+    const err = new Error('Bad Request');
+    err.status = 400;
+    next(err);
+};
 
 
 router.use(routeTokenValidation);
 router.post('/nas', routeNAS);
 router.get('/nas/status', routeNASStatus);
-
+router.use(routeBadRequest);
 
 module.exports = router;
