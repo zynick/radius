@@ -5,7 +5,7 @@ const debug = require('debug');
 const glob = require('glob');
 const mongoose = require('mongoose');
 
-const log = debug('bootstrap');
+const log = debug('boot');
 const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE, NODE_ENV } = require('./config.js');
 
 
@@ -23,6 +23,7 @@ const Users = mongoose.model('Users');
 const NAS = mongoose.model('NAS');
 
 
+/* Bootstrap Data */
 async.parallel([
     next => {
         new NAS({
@@ -57,6 +58,5 @@ async.parallel([
                 next();
             });
     }
-], () => {
-    mongoose.connection.close();
-});
+],
+() => mongoose.connection.close());

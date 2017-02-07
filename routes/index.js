@@ -1,7 +1,7 @@
 'use strict';
 
 const router = require('express').Router();
-const log = require('debug')('web:routes');
+const log = require('debug')('wapi:routes');
 const { NODE_ENV } = require('../config.js');
 const isProduction = NODE_ENV === 'production';
 const { version } = require('../package.json');
