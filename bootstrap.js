@@ -38,8 +38,8 @@ async.parallel([
                     slogan: 'Welcome to ACE Guest WiFi'
                 }
             })
-            .save((err = {}, user) => {
-                log(err.message || 'Bootstrap NAS has been created.');
+            .save((err, doc) => {
+                log(err ? err.message : 'Bootstrap NAS has been created.');
                 next();
             });
     },
@@ -52,8 +52,8 @@ async.parallel([
                 password: 'fd635cf7502be9481f2f315d2c0e816fe87ea54da9d862d04ea383a81064a9a8', // bbb?
                 organization: 'ace-tide'
             })
-            .save((err = {}, user) => {
-                log(err.message || 'Bootstrap User has been created.');
+            .save((err, doc) => {
+                log(err ? err.message : 'Bootstrap User has been created.');
                 next();
             });
     }
