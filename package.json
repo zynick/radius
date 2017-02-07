@@ -1,30 +1,30 @@
 {
-  "name": "radius",
-  "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "dev": "npm run dev_bootstrap && npm run dev_web & npm run dev_auth & npm run dev_acct",
-    "dev_bootstrap": "NODE_ENV=development DEBUG=bootstrap node bootstrap",
-    "dev_acct": "NODE_ENV=development DEBUG=acct:* node acctServer",
-    "dev_auth": "NODE_ENV=development DEBUG=auth:* node authServer",
-    "dev_web": "NODE_ENV=development PORT=3001 DEBUG=web:* node webServer",
+    "name": "radius",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "dev": "npm run dev_bootstrap && npm run dev_web & npm run dev_auth & npm run dev_acct",
+        "dev_bootstrap": "NODE_ENV=development DEBUG=bootstrap node bootstrap",
+        "dev_acct": "NODE_ENV=development DEBUG=acct:* node acctServer",
+        "dev_auth": "NODE_ENV=development DEBUG=auth:* node authServer",
+        "dev_web": "NODE_ENV=development PORT=3001 DEBUG=web:* node webServer",
 
-    "start": "npm run start_bootstrap && npm run start_web & npm run start_auth & npm run start_acct",
-    "start_bootstrap": "NODE_ENV=production DEBUG=bootstrap node bootstrap",
-    "start_acct": "NODE_ENV=production DEBUG=acct:error node acctServer",
-    "start_auth": "NODE_ENV=production DEBUG=auth:error node authServer",
-    "start_web": "NODE_ENV=production PORT=3001 DEBUG=web:error node webServer"
-  },
-  "dependencies": {
-    "argon2": "^0.15.0",
-    "blueimp-md5": "^2.6.0",
-    "body-parser": "^1.15.2",
-    "debug": "^2.2.0",
-    "express": "^4.14.0",
-    "glob": "^7.1.1",
-    "mongoose": "^4.7.5",
-    "mongoose-unique-validator": "^1.0.3",
-    "morgan": "^1.7.0",
-    "radius": "^1.1.3"
-  }
+        "start": "npm run start_bootstrap && npm run start_web & npm run start_auth & npm run start_acct",
+        "start_bootstrap": "NODE_ENV=production DEBUG=bootstrap node bootstrap",
+        "start_acct": "NODE_ENV=production DEBUG=acct:error node acctServer",
+        "start_auth": "NODE_ENV=production DEBUG=auth:error node authServer",
+        "start_web": "NODE_ENV=production PORT=3001 DEBUG=web:error node webServer"
+    },
+    "dependencies": {
+        "argon2": "^0.15.0",
+        "blueimp-md5": "^2.6.0",
+        "body-parser": "^1.15.2",
+        "debug": "^2.2.0",
+        "express": "^4.14.0",
+        "glob": "^7.1.1",
+        "mongoose": "^4.7.5",
+        "mongoose-unique-validator": "^1.0.3",
+        "morgan": "^1.7.0",
+        "radius": "^1.1.3"
+    }
 }

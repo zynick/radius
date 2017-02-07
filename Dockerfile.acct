@@ -11,6 +11,6 @@ RUN npm uninstall -g npm
 RUN apk del make gcc g++ python
 RUN rm -rf /var/cache/apk/*
 
-EXPOSE 3001 1812 1813
+EXPOSE 1813/udp
 
-CMD [ "node", "webServer", "&&", "node", "authServer", "&&", "node", "acctServer" ]
+CMD [ "node", "acctServer" ]

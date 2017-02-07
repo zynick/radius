@@ -1,8 +1,55 @@
 version: '2'
 
 services:
+  bootstrap:
+    build:
+      context: .
+      dockerfile: Dockerfile.bootstrap
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=bootstrap
+      - MONGO_HOST=database
+      - MONGO_PORT=27017
+      - MONGO_DATABASE=radius
+      - NODE_ENV=staging
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    ports:
+      - "1812:1812/udp"
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=auth:*
+      - MONGO_HOST=database
+      - MONGO_PORT=27017
+      - MONGO_DATABASE=radius
+      - NODE_ENV=staging
+      - SECRET_KEY=mikrotiksecret
+
+  acct:
+    build:
+      context: .
+      dockerfile: Dockerfile.acct
+    ports:
+      - "1813:1813/udp"
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=acct:*
+      - MONGO_HOST=database
+      - MONGO_PORT=27017
+      - MONGO_DATABASE=radius
+      - NODE_ENV=staging
+      - SECRET_KEY=mikrotiksecret
+
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.web
     ports:
       - "3001:3001"
     volumes:
@@ -15,8 +62,6 @@ services:
       - MONGO_DATABASE=radius
       - NODE_ENV=staging
       - PORT=3001
-      - SECRET_KEY=mikrotiksecret
-      - BOOTSTRAP=true
 
   database:
     ports:

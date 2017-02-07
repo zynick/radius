@@ -1,0 +1,16 @@
+FROM node:7-alpine
+
+RUN apk add --no-cache make gcc g++ python ca-certificates openssl
+
+WORKDIR /app
+ADD . .
+RUN rm -rf node_modules/
+RUN npm install
+
+RUN npm uninstall -g npm
+RUN apk del make gcc g++ python
+RUN rm -rf /var/cache/apk/*
+
+EXPOSE 1812/udp
+
+CMD [ "node", "authServer" ]
