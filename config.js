@@ -1,24 +1,21 @@
 'use strict';
 
 const {
-    API_TOKEN  = 'uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI',
-
+    AAA_SECRET_KEY = 'mikrotiksecret',
     MONGO_HOST = 'localhost',
     MONGO_PORT = 27017,
     MONGO_DATABASE = 'radius',
-
     NODE_ENV = 'development',
-    PORT = 3001,
-
-    SECRET_KEY = 'mikrotiksecret'
+    WEB_API_TOKEN = 'uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI',
+    WEB_PORT = 3001
 } = process.env;
 
 module.exports = {
-    API_TOKEN,
+    AAA_SECRET_KEY,
     MONGO_HOST,
     MONGO_PORT,
     MONGO_DATABASE,
     NODE_ENV,
-    PORT,
-    SECRET_KEY // we will have a global secret key for now
+    WEB_API_TOKEN,
+    WEB_PORT
 };

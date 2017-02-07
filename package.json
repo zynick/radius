@@ -7,13 +7,13 @@
         "dev_bootstrap": "NODE_ENV=development DEBUG=bootstrap node bootstrap",
         "dev_acct": "NODE_ENV=development DEBUG=acct:* node acctServer",
         "dev_auth": "NODE_ENV=development DEBUG=auth:* node authServer",
-        "dev_web": "NODE_ENV=development PORT=3001 DEBUG=web:* node webServer",
+        "dev_web": "NODE_ENV=development WEB_PORT=3001 DEBUG=web:* node webServer",
 
         "start": "npm run start_bootstrap && npm run start_web & npm run start_auth & npm run start_acct",
         "start_bootstrap": "NODE_ENV=production DEBUG=bootstrap node bootstrap",
         "start_acct": "NODE_ENV=production DEBUG=acct:error node acctServer",
         "start_auth": "NODE_ENV=production DEBUG=auth:error node authServer",
-        "start_web": "NODE_ENV=production PORT=3001 DEBUG=web:error node webServer"
+        "start_web": "NODE_ENV=production WEB_PORT=3001 DEBUG=web:error node webServer"
     },
     "dependencies": {
         "argon2": "^0.15.0",

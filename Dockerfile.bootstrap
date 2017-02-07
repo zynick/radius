@@ -11,6 +11,4 @@ RUN npm uninstall -g npm
 RUN apk del make gcc g++ python
 RUN rm -rf /var/cache/apk/*
 
-# EXPOSE 3001 1812 1813
-
 CMD [ "node", "bootstrap" ]

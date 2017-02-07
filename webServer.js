@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 
 const log = debug('web:server');
 const logError = debug('web:error');
-const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE, PORT } = require('./config.js');
+const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE, WEB_PORT } = require('./config.js');
 
 
 /* Initialize Database */
@@ -42,7 +42,7 @@ const normalizePort = (val) => {
     }
     return false;
 };
-const port = normalizePort(PORT);
+const port = normalizePort(WEB_PORT);
 app.set('port', port);
 
 
