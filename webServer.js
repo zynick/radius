@@ -22,7 +22,8 @@ const {
 
 /* Initialize Database */
 mongoose.Promise = global.Promise;
-mongoose.connect(`mongodb://${MONGO_USER}:${MONGO_PASS}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
+// mongoose.connect(`mongodb://${MONGO_USER}:${MONGO_PASS}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
+mongoose.connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
 mongoose.connection.on('error', err => {
     logError(`unable to connect to database at ${MONGO_USER}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`);
     logError(err);
