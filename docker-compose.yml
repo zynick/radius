@@ -11,9 +11,11 @@ services:
     environment:
       - AAA_SECRET_KEY=mikrotiksecret
       - DEBUG=auth:*
+      - MONGO_USER=radius-user
+      - MONGO_PASS=radius-punya-password
       - MONGO_HOST=192.168.0.132
       - MONGO_PORT=27017
-      - MONGO_DATABASE=radius
+      - MONGO_DB=radius
       - NODE_ENV=staging
 
   acct:
@@ -25,9 +27,11 @@ services:
     environment:
       - AAA_SECRET_KEY=mikrotiksecret
       - DEBUG=acct:*
+      - MONGO_USER=radius-user
+      - MONGO_PASS=radius-punya-password
       - MONGO_HOST=192.168.0.132
       - MONGO_PORT=27017
-      - MONGO_DATABASE=radius
+      - MONGO_DB=radius
       - NODE_ENV=staging
 
   wapi:
@@ -38,9 +42,11 @@ services:
       - "3001:3001"
     environment:
       - DEBUG=wapi:*
+      - MONGO_USER=radius-user
+      - MONGO_PASS=radius-punya-password
       - MONGO_HOST=192.168.0.132
       - MONGO_PORT=27017
-      - MONGO_DATABASE=radius
+      - MONGO_DB=radius
       - NODE_ENV=staging
       - WEB_API_TOKEN=uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI
       - WEB_PORT=3001
@@ -53,9 +59,11 @@ services:
   #    - .:/app
   #   environment:
   #     - DEBUG=boot
+  #     - MONGO_USER=radius-user
+  #     - MONGO_PASS=radius-punya-password
   #     - MONGO_HOST=192.168.0.132
   #     - MONGO_PORT=27017
-  #     - MONGO_DATABASE=radius
+  #     - MONGO_DB=radius
   #     - NODE_ENV=staging
 
   # database:
