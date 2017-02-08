@@ -12,6 +12,8 @@ const {
 
 module.exports = {
     AAA_SECRET_KEY,
+    AD_HOST,
+    AD_KEY,
     MONGO,
     NODE_ENV,
     WEB_API_TOKEN,
