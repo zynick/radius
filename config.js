@@ -2,6 +2,8 @@
 
 const {
     AAA_SECRET_KEY = 'mikrotiksecret',
+    AD_HOST = 'connect-dev-api.tideanalytics.com',
+    AD_KEY = 'DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4',
     MONGO = 'localhost:27017/radius',
     NODE_ENV = 'development',
     WEB_API_TOKEN = 'uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI',

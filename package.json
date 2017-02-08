@@ -8,7 +8,6 @@
         "dev_acct": "NODE_ENV=development DEBUG=acct:* node acctServer",
         "dev_auth": "NODE_ENV=development DEBUG=auth:* node authServer",
         "dev_wapi": "NODE_ENV=development DEBUG=wapi:* WEB_PORT=3001 node webServer",
-
         "start": "npm run start_boot && npm run start_wapi & npm run start_auth & npm run start_acct",
         "start_boot": "NODE_ENV=production DEBUG=boot       node bootstrap",
         "start_acct": "NODE_ENV=production DEBUG=acct:error node acctServer",
@@ -25,6 +24,7 @@
         "mongoose": "^4.7.5",
         "mongoose-unique-validator": "^1.0.3",
         "morgan": "^1.7.0",
+        "querystring": "^0.2.0",
         "radius": "^1.1.3"
     }
 }

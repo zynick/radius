@@ -7,8 +7,10 @@ const radius = require('radius');
 
 const log = debug('acct:server');
 const logError = debug('acct:error');
+const admanager = require('../lib/admanager.js');
 const { AAA_SECRET_KEY } = require('../config.js');
 const Accounting = mongoose.model('Accounting');
+const NAS = mongoose.model('NAS');
 const { InvalidSecretError } = radius;
 
 
@@ -22,6 +24,21 @@ module.exports = server => {
                 if (err) { next(err); }
                 log(`packet ${packet.identifier} responded: ${code}`);
             });
+    };
+
+    const logAccounting = (attributes, packet, rinfo, next) => {
+        new Accounting({
+                // attributes['Event-Timestamp'] is add-on attribute from coova-chilli,
+                // so we will not going to bother overwriting it to date
+                date: Date.now(),
+                attributes
+            })
+            .save()
+            .then(acct => {
+                log('packet logged successfully.');
+                sendResponse(packet, rinfo, 'Accounting-Response', next);
+            })
+            .catch(next);
     };
 
     const stackDecodePacket = (rawPacket, rinfo, next) => {
@@ -52,7 +69,6 @@ module.exports = server => {
     };
 
     const stackAccounting = (packet, rinfo, next) => {
-        // TODO TRACK ACCOUNTING JSON FROM MIKROTIK
 
         const { attributes } = packet;
         const acctStatusType = attributes['Acct-Status-Type'];
@@ -62,20 +78,56 @@ module.exports = server => {
             case 'Start':
             case 'Stop':
             case 'Interim-Update':
+                logAccounting(attributes, packet, rinfo, next);
+                break;
+
             case 'Accounting-On':
+                async.waterfall([
+                    next => next(null, attributes, packet, rinfo),
+                    (attributes, packet, rinfo, next) => {
+                        const id = attributes['NAS-Identifier'];
+                        NAS
+                            .findOne({ id })
+                            .maxTime(10000)
+                            .exec()
+                            .then(nas => {
+                                if (!nas) {
+                                    // TODO what are you going to do with this?
+                                    return log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
+                                }
+                                next(null, attributes, packet, rinfo, nas);
+                            })
+                            .catch(next);
+                    },
+                    (attributes, packet, rinfo, nas, next) => {
+                        const { organization, id: nas_id } = nas;
+                        const mac = attributes['Calling-Station-Id'];
+                        const id = attributes['User-Name'];
+                        const payload = { type: 'Accounting-On' };
+                        admanager.action(organization, nas_id, mac, id, payload, 
+                            (err, httpRes) => next(err, attributes, packet, rinfo, httpRes));
+                    },
+                    (attributes, packet, rinfo, httpRes, next) => {
+                        if (httpRes.statusCode !== 200) {
+                            const err = new Error(`Unable to query content from AD Server: ${httpRes.statusMessage}`);
+                            err.status = httpRes.statusCode;
+                            return next(err);
+                        }
+
+                        log(`AD Server HTTP Response Body: ${JSON.stringify(httpRes.body, null, 2)}`);
+                        next(null, attributes, packet, rinfo);
+                    },
+                    (attributes, packet, rinfo, next) => {
+                        logAccounting(attributes, packet, rinfo, next);
+                    }
+                ],
+                err => {
+                    if (err) { logError(err); }
+                });
+                break;
+
             case 'Accounting-Off':
-                new Accounting({
-                        // attributes['Event-Timestamp'] is add-on attribute from coova-chilli,
-                        // so we will not going to bother overwriting it to date
-                        date: Date.now(),
-                        attributes
-                    })
-                    .save()
-                    .then(acct => {
-                        log('packet logged successfully.');
-                        sendResponse(packet, rinfo, 'Accounting-Response', next);
-                    })
-                    .catch(next);
+                logAccounting(attributes, packet, rinfo, next);
                 break;
 
             default:
