@@ -78,10 +78,9 @@ module.exports = server => {
             case 'Start':
             case 'Stop':
             case 'Interim-Update':
-                logAccounting(attributes, packet, rinfo, next);
-                break;
-
             case 'Accounting-On':
+            case 'Accounting-Off':
+
                 async.waterfall([
                     next => next(null, attributes, packet, rinfo),
                     (attributes, packet, rinfo, next) => {
@@ -124,10 +123,6 @@ module.exports = server => {
                 err => {
                     if (err) { logError(err); }
                 });
-                break;
-
-            case 'Accounting-Off':
-                logAccounting(attributes, packet, rinfo, next);
                 break;
 
             default:
