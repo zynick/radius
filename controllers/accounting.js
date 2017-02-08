@@ -102,7 +102,7 @@ module.exports = server => {
                         const { organization, id: nas_id } = nas;
                         const mac = attributes['Calling-Station-Id'];
                         const id = attributes['User-Name'];
-                        const payload = { type: 'Accounting-On' };
+                        const payload = { type: 'Radius', attributes };
                         admanager.action(organization, nas_id, mac, id, payload, 
                             (err, httpRes) => next(err, attributes, packet, rinfo, httpRes));
                     },
