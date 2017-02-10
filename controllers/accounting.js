@@ -113,7 +113,7 @@ module.exports = server => {
                             return next(err);
                         }
 
-                        log(`AD Server HTTP Response Body: ${JSON.stringify(httpRes.body, null, 2)}`);
+                        log(`AD Server HTTP Response Body: ${JSON.stringify(httpRes.body)}`);
                         next(null, attributes, packet, rinfo);
                     },
                     (attributes, packet, rinfo, next) => {
