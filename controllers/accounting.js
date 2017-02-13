@@ -102,7 +102,8 @@ module.exports = server => {
                         const { organization, id: nas_id } = nas;
                         const mac = attributes['Calling-Station-Id'];
                         const id = attributes['User-Name'];
-                        const payload = { type: 'Radius', attributes };
+                        const action = attributes['Acct-Status-Type']; // Start / Stop / Interim-Update
+                        const payload = { type: 'Radius', action, attributes };
                         admanager.action(organization, nas_id, mac, id, payload, 
                             (err, httpRes) => next(err, attributes, packet, rinfo, httpRes));
                     },
