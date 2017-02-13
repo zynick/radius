@@ -134,8 +134,22 @@ module.exports = server => {
                 if (!nas) {
                     return log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
                 }
-                next(null, packet, rinfo, nas);
+
+                // update NAS last seen
+                nas.lastseen = new Date();
+                nas
+                    .save()
+                    .then(nas => next(null, packet, rinfo, nas))
+                    .catch(next);
             })
+            .catch(next);
+    };
+
+    const stackNASLastSeen = (packet, rinfo, nas, next) => {
+        nas.lastseen = new Date();
+        nas
+            .save()
+            .then(nas => next(null, packet, rinfo, nas))
             .catch(next);
     };
 
@@ -182,6 +196,7 @@ module.exports = server => {
             stackValidateIdentifier,
             stackValidateAuthRequest,
             stackValidateMAC,
+            stackNASLastSeen,
             stackNASSettings,
             stackAuthorization
         ], err => {
