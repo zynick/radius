@@ -39,7 +39,7 @@ const routeErrorHandlerJSON = (err, req, res, next) => {
 if (!isProduction) {
     router.use(routeDebug);
 }
-router.get('/', (req, res) => res.json(`Radius API Server v${version}`));
+router.get('/', (req, res) => res.json(`ACE-TIDE Radius API Server v${version}`));
 router.use('/api', require('./api'));
 router.use(routeNotFound);             // TODO change make routeBadRequest?
 router.use(routeErrorHandlerJSON);

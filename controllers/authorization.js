@@ -134,13 +134,7 @@ module.exports = server => {
                 if (!nas) {
                     return log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
                 }
-
-                // update NAS last seen
-                nas.lastseen = new Date();
-                nas
-                    .save()
-                    .then(nas => next(null, packet, rinfo, nas))
-                    .catch(next);
+                next(null, packet, rinfo, nas);
             })
             .catch(next);
     };
