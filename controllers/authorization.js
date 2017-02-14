@@ -1,6 +1,5 @@
 'use strict';
 
-const argon2 = require('argon2');
 const async = require('async');
 const debug = require('debug');
 const md5 = require('blueimp-md5');
@@ -25,19 +24,6 @@ module.exports = server => {
                 if (err) { next(err); }
                 log(`packet ${packet.identifier} responded: ${code}`);
             });
-    };
-
-    const hashPassword = (username, password, next) => {
-        argon2
-            .hash(password, new Buffer(username + 'ace-tide'), {
-                type: argon2.argon2d,
-                timeCost: 3,
-                memoryCost: 11,
-                parallelism: 1,
-                raw: true
-            })
-            .then(hash => next(null, hash.toString('hex')) )
-            .catch(next);
     };
 
     const authorizeCHAP = (packet, rinfo, username, chapPassword, next) => {

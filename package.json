@@ -15,7 +15,6 @@
         "start_wapi": "NODE_ENV=production DEBUG=wapi:error WEB_PORT=3001 node webServer"
     },
     "dependencies": {
-        "argon2": "^0.15.0",
         "async": "^2.1.4",
         "blueimp-md5": "^2.6.0",
         "body-parser": "^1.15.2",

@@ -19,7 +19,8 @@ const userSchema = new Schema({
     },
 
     password: String,
-    nasId: String,
+    nasId: String,  // TODO remove nasId, replace with createdFrom
+    createdFrom: String,
     created: {
         type: Date,
         default: Date.now
@@ -32,11 +33,11 @@ const userSchema = new Schema({
 });
 
 userSchema.index({ organization: 1, username: 1 }, { unique: 'Username already exists.' });
-
 userSchema.plugin(uniqueValidator);
 
 // Error Handling Middleware
 const errorHandler = (err, doc, next) => {
+    // TODO refactor: what will happen if only check and change via err.name === 'ValidationError'?
     err.originalMessage = err.message;
     const keys = Object.keys(err.errors);
     err.message = keys[0] ? err.errors[keys[0]].message : err.message;
