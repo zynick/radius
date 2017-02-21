@@ -34,7 +34,8 @@ const nasSchema = new Schema({
             required: 'Assets is required.'
         },
         url: String,
-        slogan: String
+        slogan: String,
+        announcement: String
     },
 
     secret: String,

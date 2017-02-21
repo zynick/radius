@@ -9,180 +9,167 @@ const radius = require('radius');
 const log = debug('auth:server');
 const logError = debug('auth:error');
 const { AAA_SECRET_KEY } = require('../config.js');
-const Users = mongoose.model('Users');
+// const Users = mongoose.model('Users');
+const Tokens = mongoose.model('Tokens');
 const NAS = mongoose.model('NAS');
 const { InvalidSecretError } = radius;
 
 
 module.exports = server => {
 
-    const sendResponse = (packet, { port, address }, code, next) => {
-        const res = radius.encode_response({ packet, code, secret: AAA_SECRET_KEY });
+  const sendResponse = (packet, { port, address }, code, next) => {
+    const res = radius.encode_response({ packet, code, secret: AAA_SECRET_KEY });
 
-        server.send(res, 0, res.length, port, address,
-            (err, bytes) => {
-                if (err) { next(err); }
-                log(`packet ${packet.identifier} responded: ${code}`);
-            });
-    };
+    server.send(res, 0, res.length, port, address,
+      (err, bytes) => {
+        if (err) { next(err); }
+        log(`packet ${packet.identifier} responded: ${code}`);
+      });
+  };
 
-    const authorizeCHAP = (packet, rinfo, username, chapPassword, next) => {
-        const challenge = packet.attributes['CHAP-Challenge'];
-        if (!challenge || challenge.length !== 16) {
-            return next(new Error('Invalid CHAP-Challenge.'));
+  const authorizeCHAP = (packet, rinfo, nas, username, chapPassword, next) => {
+
+    const challenge = packet.attributes['CHAP-Challenge'];
+    if (!challenge || challenge.length !== 16) {
+      return next(new Error('Invalid CHAP-Challenge.'));
+    }
+
+    // first byte is chap-id from mikrotik
+    if (chapPassword.length !== 17) {
+      return next(new Error('Invalid CHAP-Password.'));
+    }
+
+    Tokens
+      .findOne({ organization: nas.organization, mac: username })
+      .maxTime(10000)
+      .exec()
+      .then(token => {
+        if (!token) {
+          return sendResponse(packet, rinfo, 'Access-Reject', next);
         }
 
-        // first byte is chap-id from mikrotik
-        if (chapPassword.length !== 17) {
-            return next(new Error('Invalid CHAP-Password.'));
-        }
+        const chapIdBin = chapPassword.slice(0, 1).toString('binary');
+        const challengeBin = challenge.toString('binary');
+        const dbChapHash = md5(chapIdBin + token.token + challengeBin);
 
-        Users
-            .findOne({ username })
-            .maxTime(10000)
-            .exec()
-            .then(user => {
-                if (!user) {
-                    return sendResponse(packet, rinfo, 'Access-Reject', next);
-                }
+        const inputChapHash = chapPassword.slice(1).toString('hex');
 
-                const chapIdBin = chapPassword.slice(0, 1).toString('binary');
-                const challengeBin = challenge.toString('binary');
-                const hashed = md5(chapIdBin + user.password + challengeBin);
-
-                const chapPasswordHex = chapPassword.slice(1).toString('hex');
-
-                const code = hashed === chapPasswordHex ? 'Access-Accept' : 'Access-Reject';
-                sendResponse(packet, rinfo, code, next);
-            })
-            .catch(next);
-    };
-
-    const authorizePassword = (packet, rinfo, username, password, next) => {
-        Users
-            .findOne({ username, password })
-            .maxTime(10000)
-            .exec()
-            .then(user => {
-                const code = user ? 'Access-Accept' : 'Access-Reject';
-                sendResponse(packet, rinfo, code, next);
-            })
-            .catch(next);
-    };
-
-    const authorizeState = (packet, rinfo, username, state, next) => {
-        // never comes here because 'State' rely on 'Termination-Action',
-        // and server didn't implement 'Termination-Action' upon 'Access-Accept' response.
-        // https://tools.ietf.org/html/rfc2865#section-5.24
-        next(new Error(`Access-Request with State is not impemented.`));
-    };
-
-    const authorizeGuest = (packet, rinfo, username, next) => {
-        // verify mikrotik username format
-        const code = (username.length === 19 && username.indexOf('T-') === 0) ? 'Access-Accept' : 'Access-Reject';
+        const code = dbChapHash === inputChapHash ? 'Access-Accept' : 'Access-Reject';
         sendResponse(packet, rinfo, code, next);
-    };
+      })
+      .catch(next);
+  };
 
-    const stackDecodePacket = (rawPacket, rinfo, next) => {
-        try {
-            const packet = radius.decode({ packet: rawPacket, secret: AAA_SECRET_KEY });
-            log(`packet: ${JSON.stringify(packet)}`);
-            next(null, packet, rinfo);
-        } catch (err) {
-            if (err instanceof InvalidSecretError) {
-                log('drop invalid secret message');
-            } else {
-                next(err);
-            }
+  const authorizePassword = (packet, rinfo, nas, username, password, next) => {
+    Tokens
+      .findOne({ organization: nas.organization, mac: username, token: password })
+      .maxTime(10000)
+      .exec()
+      .then(token => {
+        const code = token ? 'Access-Accept' : 'Access-Reject';
+        sendResponse(packet, rinfo, code, next);
+      })
+      .catch(next);
+  };
+
+  const authorizeGuest = (packet, rinfo, username, next) => {
+    // verify mikrotik username format
+    const code = (username.length === 19 && username.indexOf('T-') === 0) ? 'Access-Accept' : 'Access-Reject';
+    log(' ============== authorizeGuest(): DOES IT EVER REACH HERE BEFORE??? ================ ');
+    sendResponse(packet, rinfo, code, next);
+  };
+
+  const authorizeState = (packet, rinfo, state, next) => {
+    // never comes here because 'State' rely on 'Termination-Action',
+    // and server didn't implement 'Termination-Action' upon 'Access-Accept' response.
+    // https://tools.ietf.org/html/rfc2865#section-5.24
+    next(new Error(`Access-Request with State is not impemented.`));
+  };
+
+  const stackDecodePacket = (rawPacket, rinfo, next) => {
+    try {
+      const packet = radius.decode({ packet: rawPacket, secret: AAA_SECRET_KEY });
+      log(`packet: ${JSON.stringify(packet)}`);
+      next(null, packet, rinfo);
+    } catch (err) {
+      if (err instanceof InvalidSecretError) {
+        log('drop invalid secret message');
+      } else {
+        next(err);
+      }
+    }
+  };
+
+  const stackValidateIdentifier = (packet, rinfo, next) => {
+    // TODO drop packet if packet identifier repeated
+    next(null, packet, rinfo);
+  };
+
+  const stackValidateAuthRequest = (packet, rinfo, next) => {
+    if (packet.code === 'Access-Request') {
+      next(null, packet, rinfo);
+    } else {
+      log(`drop invalid packet code ${packet.code}`);
+    }
+  };
+
+  const stackValidateMAC = (packet, rinfo, next) => {
+    const id = packet.attributes['NAS-Identifier'];
+    NAS
+      .findOne({ id })
+      .maxTime(10000)
+      .exec()
+      .then(nas => {
+        if (!nas) {
+          return log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
         }
-    };
+        next(null, packet, rinfo, nas);
+      })
+      .catch(next);
+  };
 
-    const stackValidateIdentifier = (packet, rinfo, next) => {
-        // TODO drop packet if packet identifier repeated
-        next(null, packet, rinfo);
-    };
+  const stackNASLastSeen = (packet, rinfo, nas, next) => {
+    nas.lastseen = new Date();
+    nas
+      .save()
+      .then(nas => next(null, packet, rinfo, nas))
+      .catch(next);
+  };
 
-    const stackValidateAuthRequest = (packet, rinfo, next) => {
-        if (packet.code === 'Access-Request') {
-            next(null, packet, rinfo);
-        } else {
-            log(`drop invalid packet code ${packet.code}`);
-        }
-    };
+  const stackAuthorization = (packet, rinfo, nas, next) => {
+    const {
+      ['User-Name']: username, ['CHAP-Password']: chapPassword, ['User-Password']: password, ['State']: state
+    } = packet.attributes;
 
-    const stackValidateMAC = (packet, rinfo, next) => {
-        const id = packet.attributes['NAS-Identifier'];
-        NAS
-            .findOne({ id })
-            .maxTime(10000)
-            .exec()
-            .then(nas => {
-                if (!nas) {
-                    return log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
-                }
-                next(null, packet, rinfo, nas);
-            })
-            .catch(next);
-    };
+    if (chapPassword) {
+      authorizeCHAP(packet, rinfo, nas, username, chapPassword, next);
+    } else if (password) {
+      authorizePassword(packet, rinfo, nas, username, password, next);
+    } else if (password === '') {
+      authorizeGuest(packet, rinfo, username, next);
+    } else if (state) {
+      authorizeState(packet, rinfo, state, next);
+    } else {
+      // https://tools.ietf.org/html/rfc2865#section-4.1
+      next(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
+    }
+  };
 
-    const stackNASLastSeen = (packet, rinfo, nas, next) => {
-        nas.lastseen = new Date();
-        nas
-            .save()
-            .then(nas => next(null, packet, rinfo, nas))
-            .catch(next);
-    };
+  const processAuthorization = (rawPacket, rinfo) => {
+    // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
 
-    const stackNASSettings = (packet, rinfo, nas, next) => {
-        const { guest, email } = nas.login;
+    async.waterfall([
+      next => next(null, rawPacket, rinfo),
+      stackDecodePacket,
+      stackValidateIdentifier,
+      stackValidateAuthRequest,
+      stackValidateMAC,
+      stackNASLastSeen,
+      stackAuthorization
+    ], err => {
+      if (err) { logError(err); }
+    });
+  };
 
-        // TODO how does guest auth works? does guest needs go thru authServer?
-
-        // TODO email auth - CHAP-Password / User-Password
-
-        // TODO how does [social-media] auth works?
-
-        next(null, packet, rinfo);
-    };
-
-    const stackAuthorization = (packet, rinfo, next) => {
-        const {
-            ['User-Name']: username,
-            ['CHAP-Password']: chapPassword,
-            ['User-Password']: password,
-            ['State']: state
-        } = packet.attributes;
-
-        if (chapPassword) {
-            authorizeCHAP(packet, rinfo, username, chapPassword, next);
-        } else if (password) {
-            authorizePassword(packet, rinfo, username, password, next);
-        } else if (state) {
-            authorizeState(packet, rinfo, username, state, next);
-        } else if (password === '') {
-            authorizeGuest(packet, rinfo, username, next);
-        } else {
-            // https://tools.ietf.org/html/rfc2865#section-4.1
-            next(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
-        }
-    };
-
-    const processAuthorization = (rawPacket, rinfo) => {
-        // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
-
-        async.waterfall([
-            next => next(null, rawPacket, rinfo),
-            stackDecodePacket,
-            stackValidateIdentifier,
-            stackValidateAuthRequest,
-            stackValidateMAC,
-            stackNASLastSeen,
-            stackNASSettings,
-            stackAuthorization
-        ], err => {
-            if (err) { logError(err); }
-        });
-    };
-
-    return processAuthorization;
+  return processAuthorization;
 };
