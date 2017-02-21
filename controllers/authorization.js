@@ -54,8 +54,18 @@ module.exports = server => {
 
         const inputChapHash = chapPassword.slice(1).toString('hex');
 
-        const code = dbChapHash === inputChapHash ? 'Access-Accept' : 'Access-Reject';
-        sendResponse(packet, rinfo, code, next);
+        if (dbChapHash !== inputChapHash) {
+          return sendResponse(packet, rinfo, 'Access-Reject', next);
+        }
+
+        // TODO refactor this
+        Tokens
+          .findOneAndRemove({ organization: nas.organization, mac: username })
+          .maxTime(10000)
+          .exec()
+          .then(() => sendResponse(packet, rinfo, 'Access-Accept', next))
+          .catch(next)
+
       })
       .catch(next);
   };
@@ -66,8 +76,19 @@ module.exports = server => {
       .maxTime(10000)
       .exec()
       .then(token => {
-        const code = token ? 'Access-Accept' : 'Access-Reject';
-        sendResponse(packet, rinfo, code, next);
+
+        if (!token) {
+          return sendResponse(packet, rinfo, 'Access-Reject', next);
+        }
+
+        // TODO refactor this
+        Tokens
+          .findOneAndRemove({ organization: nas.organization, mac: username })
+          .maxTime(10000)
+          .exec()
+          .then(() => sendResponse(packet, rinfo, 'Access-Accept', next))
+          .catch(next)
+
       })
       .catch(next);
   };
