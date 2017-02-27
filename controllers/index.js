@@ -1,6 +1,6 @@
 'use strict';
 
-const log = require('debug')('wapi:controllers');
+const log = require('debug')('radius:controllers');
 const { NODE_ENV } = require('../config.js');
 const { version } = require('../package.json');
 

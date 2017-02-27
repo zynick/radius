@@ -6,8 +6,8 @@ const md5 = require('blueimp-md5');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const log = debug('auth:server');
-const logError = debug('auth:error');
+const log = debug('radius:authorization');
+const logError = debug('radius:error');
 const { AAA_SECRET_KEY } = require('../config.js');
 // const Users = mongoose.model('Users');
 const Tokens = mongoose.model('Tokens');

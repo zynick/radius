@@ -5,7 +5,7 @@ const debug = require('debug');
 const glob = require('glob');
 const mongoose = require('mongoose');
 
-const log = debug('boot');
+const log = debug('radius:boot');
 const { MONGO, NODE_ENV } = require('./config.js');
 
 

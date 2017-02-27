@@ -10,8 +10,8 @@ const dgram = require('dgram');
 const glob = require('glob');
 const mongoose = require('mongoose');
 
-const log = debug('auth:server');
-const logError = debug('auth:error');
+const log = debug('radius:authServer');
+const logError = debug('radius:error');
 const { MONGO } = require('./config.js');
 const server = dgram.createSocket('udp4');
 
