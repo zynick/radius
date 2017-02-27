@@ -7,55 +7,61 @@ const Schema = mongoose.Schema;
 
 const nasSchema = new Schema({
 
-    id: {
-        type: String,
-        required: 'NAS Id is required.',
-        index: true,
-        unique: 'NAS Id already exists.'
-    },
+  id: {
+    type: String,
+    required: 'NAS Id is required.',
+    index: true,
+    unique: 'NAS Id already exists.'
+  },
 
-    organization: {
-        type: String,
-        required: 'Organization is required.',
-        index: true
-    },
+  organization: {
+    type: String,
+    required: 'Organization is required.',
+    index: true
+  },
 
-    login: {
-        email: {
-            type: Boolean,
-            required: 'Login is required.'
-        },
-        guest: Boolean
+  login: {
+    email: {
+      type: Boolean,
+      required: 'Login is required.'
     },
+    guest: Boolean,
+    facebook: Boolean,
+    google: Boolean
+  },
 
-    assets: {
-        logo: {
-            type: String,
-            required: 'Assets is required.'
-        },
-        url: String,
-        slogan: String,
-        announcement: String
+  assets: {
+    logo: {
+      type: String,
+      required: 'Assets is required.'
     },
+    url: String,
 
-    secret: String,
-    lastseen: Date
+    announcements: {
+      sm: String,
+      md: String,
+      lg: String
+    }
+  },
+
+  secret: String,
+  lastseen: Date
 
 }, {
-    versionKey: false,
-    collection: 'nas',
-    autoIndex: NODE_ENV !== 'production'
+  versionKey: false,
+  collection: 'nas',
+  autoIndex: NODE_ENV !== 'production'
 });
 
 nasSchema.plugin(uniqueValidator);
 
 // Error Handling Middleware
 const errorHandler = (err, doc, next) => {
-    err.originalMessage = err.message;
-    const keys = Object.keys(err.errors);
-    err.message = keys[0] ? err.errors[keys[0]].message : err.message;
-    err.status = 400;
-    next(err);
+  err.originalMessage = err.message;
+  const keys = Object.keys(err.errors);
+  err.message = keys[0] ? err.errors[keys[0]].message : err.message;
+  err.status = 400;
+  next(err);
 };
 
 nasSchema.post('save', errorHandler);
