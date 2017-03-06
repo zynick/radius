@@ -81,9 +81,23 @@ module.exports = server => {
     const { organization, id: nas_id } = nas;
     const mac = attributes['Calling-Station-Id'];
     const id = attributes['User-Name'];
-    let action = attributes['Acct-Status-Type']; // Start / Stop / Interim-Update
-    action = action.toLowerCase();
-    const payload = { type: 'Radius', attributes };
+
+    let action;
+    switch (attributes['Acct-Status-Type']) {
+      case 'Start':
+        action = 'user-start';
+        break;
+      case 'Stop':
+        action = 'user-stop';
+        break;
+      case 'Interim-Update':
+        action = 'user-interim';
+        break;
+      default:
+        action = 'user-unknown';
+    }
+    const payload = { source: 'Radius', attributes };
+
     admanager.action(organization, nas_id, mac, id, action, payload,
       (err, httpRes) => {
         if (err) {
