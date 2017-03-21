@@ -2,7 +2,7 @@
 
 const async = require('async');
 const debug = require('debug');
-const md5 = require('blueimp-md5');
+const md5 = require('md5');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
