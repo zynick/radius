@@ -19,7 +19,7 @@ const userSchema = new Schema({
     },
 
     password: String,
-    nasId: String,  // TODO remove nasId, replace with createdFrom
+
     createdFrom: String,
     created: {
         type: Date,
