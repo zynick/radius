@@ -54,6 +54,12 @@ module.exports = server => {
 
         const inputChapHash = chapPassword.slice(1).toString('hex');
 
+const chapId = chapPassword.slice(0, 1);
+log(`  chapId: ${chapId}, chapIdBin: ${chapIdBin}`);
+log(`  chapChallenge: ${challenge}, chapChallengeBin: ${challengeBin}`);
+log(`  token: ${token.token}, dbChapHash: ${dbChapHash}`);
+log(`  inputChapHash: ${inputChapHash}, chapPassword: ${chapPassword}`);
+
         if (dbChapHash !== inputChapHash) {
           return sendResponse(packet, rinfo, 'Access-Reject', next);
         }
