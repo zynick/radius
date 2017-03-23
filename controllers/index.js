@@ -7,6 +7,7 @@ const { version } = require('../package.json');
 
 const debug = (req, res, next) => {
   log('==========');
+  log(`METHOD: ${JSON.stringify(req.method, null, 2)}`);
   log(`HEADERS: ${JSON.stringify(req.headers, null, 2)}`);
   log(`QUERY: ${JSON.stringify(req.query, null, 2)}`);
   log(`PARAMS: ${JSON.stringify(req.params, null, 2)}`);
