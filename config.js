@@ -1,7 +1,7 @@
 'use strict';
 
 const {
-    AAA_SECRET_KEY = 'mikrotiksecret',
+    AAA_SECRET_KEY = 'FunnyTreeBlackDeceive1',
     AD_HOST = 'connect-dev-api.tideanalytics.com',
     AD_KEY = 'DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4',
     MONGO = 'localhost:27017/radius',
