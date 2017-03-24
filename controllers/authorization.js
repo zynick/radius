@@ -6,8 +6,8 @@ const md5 = require('md5');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const log = debug('radius:authorization');
-const logError = debug('radius:error');
+const log = debug('authorization');
+const logError = debug('authorization:error');
 const { AAA_SECRET_KEY } = require('../config.js');
 // const Users = mongoose.model('Users');
 const Tokens = mongoose.model('Tokens');

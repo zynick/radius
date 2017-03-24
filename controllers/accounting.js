@@ -5,8 +5,8 @@ const debug = require('debug');
 const mongoose = require('mongoose');
 const radius = require('radius');
 
-const log = debug('radius:accounting');
-const logError = debug('radius:error');
+const log = debug('accounting');
+const logError = debug('accounting:error');
 const admanager = require('../lib/admanager.js');
 const { AAA_SECRET_KEY } = require('../config.js');
 const Accounting = mongoose.model('Accounting');

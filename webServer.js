@@ -8,8 +8,8 @@ const http = require('http');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 
-const log = debug('radius:webServer');
-const logError = debug('radius:error');
+const log = debug('web');
+const logError = debug('web:error');
 const { MONGO, WEB_PORT } = require('./config.js');
 
 
