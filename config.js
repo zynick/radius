@@ -6,7 +6,7 @@ const {
   AD_KEY = 'DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4',
   API_TOKEN = 'uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI',
   API_PORT = 3000,
-  MONGO = 'localhost:27017/radius',
+  MONGO = 'localhost:27017/radius-dev',
   NODE_ENV = 'development'
 } = process.env;
 
