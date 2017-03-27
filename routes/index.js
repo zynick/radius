@@ -6,7 +6,7 @@ const controller = require('../controllers/index.js');
 
 
 if (NODE_ENV !== 'production') {
-    router.use(controller.debug);
+  router.use(controller.debug);
 }
 
 router.get('/', controller.index);

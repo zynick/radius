@@ -8,9 +8,9 @@ const http = require('http');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 
-const log = debug('web');
-const logError = debug('web:error');
-const { MONGO, WEB_PORT } = require('./config.js');
+const log = debug('api');
+const logError = debug('api:error');
+const { MONGO, API_PORT } = require('./config.js');
 
 
 /* Initialize Database */
@@ -38,7 +38,7 @@ const normalizePort = val => {
   if (port >= 0) { return port; }
   return false;
 };
-const port = normalizePort(WEB_PORT);
+const port = normalizePort(API_PORT);
 app.set('port', port);
 
 

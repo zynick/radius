@@ -9,10 +9,10 @@ services:
     ports:
       - "1812:1812/udp"
     environment:
-      - AAA_SECRET_KEY=mikrotiksecret
-      - DEBUG=auth:*
-      - MONGO=localhost:27017/radius
-      - NODE_ENV=staging
+      - AAA_SECRET_KEY=FunnyTreeBlackDeceive1
+      - DEBUG=*
+      - MONGO=localhost:27017/radius-dev
+      - NODE_ENV=development
 
   acct:
     build:
@@ -21,34 +21,25 @@ services:
     ports:
       - "1813:1813/udp"
     environment:
-      - AAA_SECRET_KEY=mikrotiksecret
-      - DEBUG=acct:*
-      - MONGO=localhost:27017/radius
-      - NODE_ENV=staging
+      - AAA_SECRET_KEY=FunnyTreeBlackDeceive1
+      - AD_HOST=manager-api-dev.tideanalytics.com
+      - AD_KEY=DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4
+      - DEBUG=*
+      - MONGO=localhost:27017/radius-dev
+      - NODE_ENV=development
 
-  wapi:
+  api:
     build:
       context: .
-      dockerfile: Dockerfile.wapi
+      dockerfile: Dockerfile.api
     ports:
       - "3001:3001"
     environment:
-      - DEBUG=wapi:*
-      - MONGO=localhost:27017/radius
-      - NODE_ENV=staging
-      - WEB_API_TOKEN=uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI
-      - WEB_PORT=3001
-
-  # boot:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.bootstrap
-  #   volumes:
-  #    - .:/app
-  #   environment:
-  #     - DEBUG=boot
-  #     - MONGO=localhost:27017/radius
-  #     - NODE_ENV=staging
+      - API_TOKEN=uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI
+      - API_PORT=3001
+      - DEBUG=*
+      - MONGO=localhost:27017/radius-dev
+      - NODE_ENV=development
 
   # database:
   #   ports:

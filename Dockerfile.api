@@ -11,4 +11,6 @@ RUN npm uninstall -g npm
 RUN apk del make gcc g++ python
 RUN rm -rf /var/cache/apk/*
 
-CMD [ "node", "bootstrap" ]
+EXPOSE 3001
+
+CMD [ "node", "apiServer" ]

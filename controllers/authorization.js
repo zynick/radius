@@ -9,7 +9,6 @@ const radius = require('radius');
 const log = debug('authorization');
 const logError = debug('authorization:error');
 const { AAA_SECRET_KEY } = require('../config.js');
-// const Users = mongoose.model('Users');
 const Tokens = mongoose.model('Tokens');
 const NAS = mongoose.model('NAS');
 const { InvalidSecretError } = radius;
