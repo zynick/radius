@@ -33,10 +33,10 @@ services:
       context: .
       dockerfile: Dockerfile.api
     ports:
-      - "3001:3001"
+      - "3000:3000"
     environment:
       - API_TOKEN=uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI
-      - API_PORT=3001
+      - API_PORT=3000
       - DEBUG=*
       - MONGO=localhost:27017/radius-dev
       - NODE_ENV=development

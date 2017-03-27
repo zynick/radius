@@ -6,11 +6,11 @@
     "dev": "npm run dev_api & npm run dev_auth & npm run dev_acct",
     "dev_acct": "NODE_ENV=development DEBUG=* node acctServer",
     "dev_auth": "NODE_ENV=development DEBUG=* node authServer",
-    "dev_api": "NODE_ENV=development DEBUG=* API_PORT=3001 node apiServer",
+    "dev_api": "NODE_ENV=development DEBUG=* API_PORT=3000 node apiServer",
     "start": "npm run start_api & npm run start_auth & npm run start_acct",
     "start_acct": "NODE_ENV=production DEBUG=accounting:error node acctServer",
     "start_auth": "NODE_ENV=production DEBUG=authorization:error node authServer",
-    "start_api": "NODE_ENV=production DEBUG=api:error API_PORT=3001 node apiServer"
+    "start_api": "NODE_ENV=production DEBUG=api:error API_PORT=3000 node apiServer"
   },
   "dependencies": {
     "async": "^2.1.4",

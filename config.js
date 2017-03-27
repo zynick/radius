@@ -5,7 +5,7 @@ const {
   AD_HOST = 'manager-api-dev.tideanalytics.com',
   AD_KEY = 'DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4',
   API_TOKEN = 'uVJ6t7bvRSQa3qaNKLLfyGwtrdqce9RI',
-  API_PORT = 3001,
+  API_PORT = 3000,
   MONGO = 'localhost:27017/radius',
   NODE_ENV = 'development'
 } = process.env;
