@@ -33,7 +33,7 @@ module.exports = server => {
       next(null, packet, rinfo);
     } catch (err) {
       if (err instanceof InvalidSecretError) {
-        log('drop invalid secret message');
+        log('drop invalid rawPacket');
       } else {
         next(err);
       }
@@ -49,7 +49,7 @@ module.exports = server => {
     if (packet.code === 'Accounting-Request') {
       next(null, packet, rinfo);
     } else {
-      log(`drop invalid code packet ${packet.code}`);
+      log(`drop invalid packet code: ${packet.code}`);
     }
   };
 
@@ -161,7 +161,7 @@ module.exports = server => {
         break;
 
       default:
-        log(`drop invalid Acct-Status-Type packet ${acctStatusType}`);
+        log(`drop invalid packet Acct-Status-Type: ${acctStatusType}`);
         next();
         break;
     }
