@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "npm run dev_api & npm run dev_auth & npm run dev_acct",
-    "dev_acct": "NODE_ENV=development DEBUG=accounting* node acctServer",
-    "dev_auth": "NODE_ENV=development DEBUG=authorization* node authServer",
-    "dev_api": "NODE_ENV=development DEBUG=api* node apiServer",
+    "dev_acct": "NODE_ENV=development DEBUG=accounting*,admanager node acctServer",
+    "dev_auth": "NODE_ENV=development DEBUG=authorization*,admanager node authServer",
+    "dev_api": "NODE_ENV=development DEBUG=api*,admanager node apiServer",
     "start": "npm run start_api & npm run start_auth & npm run start_acct",
-    "start_acct": "NODE_ENV=production DEBUG=accounting* node acctServer",
-    "start_auth": "NODE_ENV=production DEBUG=authorization* node authServer",
-    "start_api": "NODE_ENV=production DEBUG=api* node apiServer"
+    "start_acct": "NODE_ENV=production DEBUG=accounting*,admanager node acctServer",
+    "start_auth": "NODE_ENV=production DEBUG=authorization*,admanager node authServer",
+    "start_api": "NODE_ENV=production DEBUG=api*,admanager node apiServer"
   },
   "dependencies": {
     "async": "^2.1.4",
