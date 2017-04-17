@@ -3,25 +3,20 @@
   "version": "0.0.3",
   "private": true,
   "scripts": {
-    "dev": "npm run dev_api & npm run dev_auth & npm run dev_acct",
+    "dev": "npm run dev_auth & npm run dev_acct",
     "dev_acct": "NODE_ENV=development DEBUG=accounting*,admanager node acctServer",
     "dev_auth": "NODE_ENV=development DEBUG=authorization*,admanager node authServer",
-    "dev_api": "NODE_ENV=development DEBUG=api*,admanager node apiServer",
-    "start": "npm run start_api & npm run start_auth & npm run start_acct",
+    "start": "npm run start_auth & npm run start_acct",
     "start_acct": "NODE_ENV=production DEBUG=accounting*,admanager node acctServer",
     "start_auth": "NODE_ENV=production DEBUG=authorization*,admanager node authServer",
-    "start_api": "NODE_ENV=production DEBUG=api*,admanager node apiServer"
   },
   "dependencies": {
     "async": "^2.1.4",
-    "body-parser": "^1.15.2",
     "debug": "^2.2.0",
-    "express": "^4.14.0",
     "glob": "^7.1.1",
     "md5": "^2.2.1",
     "mongoose": "^4.7.5",
     "mongoose-unique-validator": "^1.0.3",
-    "morgan": "^1.7.0",
     "radius": "^1.1.3"
   }
 }

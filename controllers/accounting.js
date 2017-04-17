@@ -8,7 +8,7 @@ const radius = require('radius');
 const log = debug('accounting');
 const logError = debug('accounting:error');
 const admanager = require('../lib/admanager.js');
-const { AAA_SECRET_KEY } = require('../config.js');
+const { SECRET_KEY } = require('../config.js');
 const Accounting = mongoose.model('Accounting');
 const NAS = mongoose.model('NAS');
 const { InvalidSecretError } = radius;
@@ -17,7 +17,7 @@ const { InvalidSecretError } = radius;
 module.exports = server => {
 
   const sendResponse = (packet, { port, address }, code, next) => {
-    const res = radius.encode_response({ packet, code, secret: AAA_SECRET_KEY });
+    const res = radius.encode_response({ packet, code, secret: SECRET_KEY });
 
     server.send(res, 0, res.length, port, address,
       (err, bytes) => {
@@ -28,7 +28,7 @@ module.exports = server => {
 
   const stackDecodePacket = (rawPacket, rinfo, next) => {
     try {
-      const packet = radius.decode({ packet: rawPacket, secret: AAA_SECRET_KEY });
+      const packet = radius.decode({ packet: rawPacket, secret: SECRET_KEY });
       log(`packet: ${JSON.stringify(packet)}`);
       next(null, packet, rinfo);
     } catch (err) {
