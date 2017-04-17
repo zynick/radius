@@ -8,7 +8,7 @@
     "dev_auth": "NODE_ENV=development DEBUG=authorization*,admanager node authServer",
     "start": "npm run start_auth & npm run start_acct",
     "start_acct": "NODE_ENV=production DEBUG=accounting*,admanager node acctServer",
-    "start_auth": "NODE_ENV=production DEBUG=authorization*,admanager node authServer",
+    "start_auth": "NODE_ENV=production DEBUG=authorization*,admanager node authServer"
   },
   "dependencies": {
     "async": "^2.1.4",
