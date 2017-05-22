@@ -17,10 +17,11 @@ const { InvalidSecretError } = radius;
 module.exports = server => {
 
   const sendResponse = (packet, { port, address }, code, next) => {
+    /*jshint camelcase:false*/
     const res = radius.encode_response({ packet, code, secret: SECRET_KEY });
 
     server.send(res, 0, res.length, port, address,
-      (err, bytes) => {
+      (err, bytes) => { /* jshint unused: false */
         if (err) { next(err); }
         log(`packet ${packet.identifier} responded: ${code}`);
       });
@@ -78,6 +79,7 @@ module.exports = server => {
   };
 
   const acctActionLog = (attributes, packet, rinfo, nas, next) => {
+    /* jshint camelcase: false */
     const { organization, id: nas_id } = nas;
     const mac = attributes['Calling-Station-Id'];
     const id = attributes['User-Name'];
@@ -123,7 +125,7 @@ module.exports = server => {
         attributes
       })
       .save()
-      .then(acct => {
+      .then(() => {
         log('packet logged successfully.');
         next(null, attributes, packet, rinfo);
       })
@@ -148,6 +150,7 @@ module.exports = server => {
       case 'Accounting-Off':
 
         async.waterfall([
+            // TODO attributes is in packet. just pass packet will do.
             next => next(null, attributes, packet, rinfo),
             acctGetNAS,
             acctNASLastSeen,

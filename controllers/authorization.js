@@ -17,10 +17,11 @@ const { InvalidSecretError } = radius;
 module.exports = server => {
 
   const sendResponse = (packet, { port, address }, code, next) => {
+    /*jshint camelcase:false*/
     const res = radius.encode_response({ packet, code, secret: SECRET_KEY });
 
     server.send(res, 0, res.length, port, address,
-      (err, bytes) => {
+      (err, bytes) => { /* jshint unused: false */
         if (err) { next(err); }
         log(`packet ${packet.identifier} responded: ${code}`);
       });
@@ -63,7 +64,7 @@ module.exports = server => {
           .maxTime(10000)
           .exec()
           .then(() => sendResponse(packet, rinfo, 'Access-Accept', next))
-          .catch(next)
+          .catch(next);
 
       })
       .catch(next);
@@ -86,7 +87,7 @@ module.exports = server => {
           .maxTime(10000)
           .exec()
           .then(() => sendResponse(packet, rinfo, 'Access-Accept', next))
-          .catch(next)
+          .catch(next);
 
       })
       .catch(next);
@@ -94,7 +95,9 @@ module.exports = server => {
 
   const authorizeGuest = (packet, rinfo, username, next) => {
     // verify mikrotik username format
-    const code = (username.length === 19 && username.indexOf('T-') === 0) ? 'Access-Accept' : 'Access-Reject';
+    // TODO can we refactor this to be not brand/model specific?
+    const code = (username.length === 19 && username.indexOf('T-') === 0) ?
+      'Access-Accept' : 'Access-Reject';
     log(' ============== authorizeGuest(): DOES IT EVER REACH HERE BEFORE??? ================ ');
     sendResponse(packet, rinfo, code, next);
   };
@@ -122,6 +125,8 @@ module.exports = server => {
 
   const stackValidateIdentifier = (packet, rinfo, next) => {
     // TODO drop packet if packet identifier repeated
+    // 2017-05-22 actually we don't need to drop, it's the server obligation to respond
+    //            the duplicate response packet (if any) will be handle by the AP itself
     next(null, packet, rinfo);
   };
 
@@ -158,7 +163,10 @@ module.exports = server => {
 
   const stackAuthorization = (packet, rinfo, nas, next) => {
     const {
-      ['User-Name']: username, ['CHAP-Password']: chapPassword, ['User-Password']: password, ['State']: state
+      'User-Name': username,
+      'CHAP-Password': chapPassword,
+      'User-Password': password,
+      'State': state
     } = packet.attributes;
 
     if (chapPassword) {
@@ -171,7 +179,8 @@ module.exports = server => {
       authorizeState(packet, rinfo, state, next);
     } else {
       // https://tools.ietf.org/html/rfc2865#section-4.1
-      next(new Error(`An Access-Request MUST contain either a User-Password or a CHAP-Password or State.`));
+      next(new Error(`An Access-Request MUST contain either ` +
+        `User-Password, CHAP-Password or State.`));
     }
   };
 
