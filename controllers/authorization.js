@@ -123,13 +123,6 @@ module.exports = server => {
     }
   };
 
-  const stackValidateIdentifier = (packet, rinfo, next) => {
-    // TODO drop packet if packet identifier repeated
-    // 2017-05-22 actually we don't need to drop, it's the server obligation to respond
-    //            the duplicate response packet (if any) will be handle by the AP itself
-    next(null, packet, rinfo);
-  };
-
   const stackValidateAuthRequest = (packet, rinfo, next) => {
     if (packet.code === 'Access-Request') {
       next(null, packet, rinfo);
@@ -190,7 +183,6 @@ module.exports = server => {
     async.waterfall([
       next => next(null, rawPacket, rinfo),
       stackDecodePacket,
-      stackValidateIdentifier,
       stackValidateAuthRequest,
       stackValidateMAC,
       stackNASLastSeen,

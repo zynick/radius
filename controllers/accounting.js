@@ -41,11 +41,6 @@ module.exports = server => {
     }
   };
 
-  const stackValidateIdentifier = (packet, rinfo, next) => {
-    // TODO drop packet if packet identifier repeated
-    next(null, packet, rinfo);
-  };
-
   const stackValidateAcctRequest = (packet, rinfo, next) => {
     if (packet.code === 'Accounting-Request') {
       next(null, packet, rinfo);
@@ -177,7 +172,6 @@ module.exports = server => {
     async.waterfall([
       next => next(null, rawPacket, rinfo),
       stackDecodePacket,
-      stackValidateIdentifier,
       stackValidateAcctRequest,
       stackAccounting
     ], err => {
