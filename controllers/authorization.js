@@ -5,25 +5,40 @@ const debug = require('debug');
 const md5 = require('md5');
 const mongoose = require('mongoose');
 const radius = require('radius');
+const util = require('util');
 
 const log = debug('authorization');
 const logError = debug('authorization:error');
 const { SECRET_KEY } = require('../config.js');
 const Tokens = mongoose.model('Tokens');
 const NAS = mongoose.model('NAS');
-const { InvalidSecretError } = radius;
+
+
+// referenced from https://github.com/retailnext/node-radius/blob/master/lib/radius.js#L31
+const RejectError = function(message = '', packet = {}, constr = this) {
+  this.message = message;
+  this.packet = packet;
+  Error.captureStackTrace(this, constr);
+};
+util.inherits(RejectError, Error);
+RejectError.prototype.name = 'Radius Reject Error';
 
 
 module.exports = server => {
 
-  const sendResponse = (packet, { port, address }, code, next) => {
-    /*jshint camelcase:false*/
-    const res = radius.encode_response({ packet, code, secret: SECRET_KEY });
+  // TODO merge this function with the same function in accounting.js
+  const _sendResponse = (packet, rinfo, code, attributes, next) => {
+    // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
+
+    const { port, address } = rinfo;
+
+    /* jshint camelcase:false */
+    const res = radius.encode_response({ packet, code, attributes, secret: SECRET_KEY });
 
     server.send(res, 0, res.length, port, address,
       (err, bytes) => { /* jshint unused: false */
         if (err) { next(err); }
-        log(`packet ${packet.identifier} responded: ${code}`);
+        log(`packet ${packet.identifier} responded: ${code}, ${JSON.stringify(attributes)}`);
       });
   };
 
@@ -31,12 +46,12 @@ module.exports = server => {
 
     const challenge = packet.attributes['CHAP-Challenge'];
     if (!challenge || challenge.length !== 16) {
-      return next(new Error('Invalid CHAP-Challenge.'));
+      return next(new RejectError('Invalid CHAP-Challenge.', packet));
     }
 
     // first byte is chap-id from mikrotik
     if (chapPassword.length !== 17) {
-      return next(new Error('Invalid CHAP-Password.'));
+      return next(new RejectError('Invalid CHAP-Password Length.', packet));
     }
 
     Tokens
@@ -45,7 +60,7 @@ module.exports = server => {
       .exec()
       .then(token => {
         if (!token) {
-          return sendResponse(packet, rinfo, 'Access-Reject', next);
+          return next(new RejectError('Invalid CHAP-Password.', packet));
         }
 
         const chapIdBin = chapPassword.slice(0, 1).toString('binary');
@@ -55,7 +70,7 @@ module.exports = server => {
         const inputChapHash = chapPassword.slice(1).toString('hex');
 
         if (dbChapHash !== inputChapHash) {
-          return sendResponse(packet, rinfo, 'Access-Reject', next);
+          return next(new RejectError('Invalid CHAP-Password.', packet));
         }
 
         // TODO refactor this
@@ -63,7 +78,7 @@ module.exports = server => {
           .findOneAndRemove({ organization: nas.organization, mac: username })
           .maxTime(10000)
           .exec()
-          .then(() => sendResponse(packet, rinfo, 'Access-Accept', next))
+          .then(() => _sendResponse(packet, rinfo, 'Access-Accept', null, next))
           .catch(next);
 
       })
@@ -78,7 +93,7 @@ module.exports = server => {
       .then(token => {
 
         if (!token) {
-          return sendResponse(packet, rinfo, 'Access-Reject', next);
+          return next(new RejectError('Invalid Credentials.', packet));
         }
 
         // TODO refactor this
@@ -86,60 +101,66 @@ module.exports = server => {
           .findOneAndRemove({ organization: nas.organization, mac: username })
           .maxTime(10000)
           .exec()
-          .then(() => sendResponse(packet, rinfo, 'Access-Accept', next))
+          .then(() => _sendResponse(packet, rinfo, 'Access-Accept', null, next))
           .catch(next);
 
       })
       .catch(next);
   };
 
-  const authorizeGuest = (packet, rinfo, username, next) => {
+  // TODO test with mikrotik and if possible, remove this stupid function
+  const authorizeGuestToBeRemoved = (packet, rinfo, username, next) => {
     // verify mikrotik username format
     // TODO can we refactor this to be not brand/model specific?
     const code = (username.length === 19 && username.indexOf('T-') === 0) ?
       'Access-Accept' : 'Access-Reject';
     log(' ============== authorizeGuest(): DOES IT EVER REACH HERE BEFORE??? ================ ');
-    sendResponse(packet, rinfo, code, next);
+    _sendResponse(packet, rinfo, code, null, next);
   };
 
   const authorizeState = (packet, rinfo, state, next) => {
     // never comes here because 'State' rely on 'Termination-Action',
     // and server didn't implement 'Termination-Action' upon 'Access-Accept' response.
     // https://tools.ietf.org/html/rfc2865#section-5.24
-    next(new Error(`Access-Request with State is not impemented.`));
+    next(new RejectError('Server does not accept and process State attribute.', packet));
   };
 
   const stackDecodePacket = (rawPacket, rinfo, next) => {
+    let packet;
+
     try {
-      const packet = radius.decode({ packet: rawPacket, secret: SECRET_KEY });
-      log(`packet: ${JSON.stringify(packet)}`);
-      next(null, packet, rinfo);
+      packet = radius.decode({ packet: rawPacket, secret: SECRET_KEY });
     } catch (err) {
-      if (err instanceof InvalidSecretError) {
-        log('drop invalid secret message');
-      } else {
-        next(err);
-      }
+      return next(err);
     }
+
+    log(`packet: ${JSON.stringify(packet)}`);
+    next(null, packet, rinfo);
   };
 
-  const stackValidateAuthRequest = (packet, rinfo, next) => {
+  const stackValidatePacketCode = (packet, rinfo, next) => {
     if (packet.code === 'Access-Request') {
       next(null, packet, rinfo);
     } else {
-      log(`drop invalid packet code ${packet.code}`);
+      // https://tools.ietf.org/html/rfc2865#page-14
+      log(`discard invalid packet code: ${packet.code}`);
     }
   };
 
-  const stackValidateMAC = (packet, rinfo, next) => {
+  const stackValidateNASIdentifier = (packet, rinfo, next) => {
     const id = packet.attributes['NAS-Identifier'];
+
+    if (!id) {
+      return next(new RejectError('NAS-Identifier is required.', packet));
+    }
+
     NAS
       .findOne({ id })
       .maxTime(10000)
       .exec()
       .then(nas => {
         if (!nas) {
-          return log(`drop invalid packet NAS-Identifier (MAC): ${id}`);
+          return next(new RejectError(`Invalid NAS-Identifier: ${id}`, packet));
         }
         next(null, packet, rinfo, nas);
       })
@@ -152,6 +173,16 @@ module.exports = server => {
       .save()
       .then(nas => next(null, packet, rinfo, nas))
       .catch(next);
+  };
+
+  const stackValidateUserName = (packet, rinfo, nas, next) => {
+    const username = packet.attributes['User-Name'];
+
+    if (!username) {
+      return next(new RejectError('User-Name is required.', packet));
+    }
+
+    next(null, packet, rinfo, nas);
   };
 
   const stackAuthorization = (packet, rinfo, nas, next) => {
@@ -167,28 +198,38 @@ module.exports = server => {
     } else if (password) {
       authorizePassword(packet, rinfo, nas, username, password, next);
     } else if (password === '') {
-      authorizeGuest(packet, rinfo, username, next);
+      authorizeGuestToBeRemoved(packet, rinfo, username, next);
     } else if (state) {
       authorizeState(packet, rinfo, state, next);
     } else {
       // https://tools.ietf.org/html/rfc2865#section-4.1
-      next(new Error(`An Access-Request MUST contain either ` +
-        `User-Password, CHAP-Password or State.`));
+      const message = 'An Access-Request MUST contain either ' +
+          'User-Password, CHAP-Password or State.';
+      next(new RejectError(message, packet));
     }
   };
 
   const processAuthorization = (rawPacket, rinfo) => {
     // rinfo sample { address: '127.0.0.1', family: 'IPv4', port: 54950, size: 78 }
 
+    log(`*****************************************************************`);
+
     async.waterfall([
       next => next(null, rawPacket, rinfo),
       stackDecodePacket,
-      stackValidateAuthRequest,
-      stackValidateMAC,
+      stackValidatePacketCode,
+      stackValidateNASIdentifier,
       stackNASLastSeen,
+      stackValidateUserName,
       stackAuthorization
     ], err => {
-      if (err) { logError(err); }
+      if (err instanceof RejectError) {
+        const attributes = { 'Reply-Message': err.message };
+        _sendResponse(err.packet, rinfo, 'Access-Reject', attributes,
+          _err => { if (_err) { logError(_err); } });
+      } else if (err) {
+        logError(err);
+      }
     });
   };
 
