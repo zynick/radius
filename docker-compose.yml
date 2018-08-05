@@ -10,9 +10,9 @@ services:
       - "1812:1812/udp"
     environment:
       - DEBUG=authorization*,admanager
-      - MONGO=localhost:27017/radius-dev
+      - MONGO=
       - NODE_ENV=development
-      - SECRET_KEY=FunnyTreeBlackDeceive1
+      - SECRET_KEY=
 
   acct:
     build:
@@ -21,9 +21,9 @@ services:
     ports:
       - "1813:1813/udp"
     environment:
-      - AD_HOST=manager-api-dev.tideanalytics.com
-      - AD_KEY=DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4
+      - AD_HOST=
+      - AD_KEY=
       - DEBUG=accounting*,admanager
-      - MONGO=localhost:27017/radius-dev
+      - MONGO=
       - NODE_ENV=development
-      - SECRET_KEY=FunnyTreeBlackDeceive1
+      - SECRET_KEY=
