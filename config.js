@@ -1,11 +1,11 @@
 'use strict';
 
 const {
-  AD_HOST = 'manager-api-dev.tideanalytics.com',
-  AD_KEY = 'DuS6YR9aCMJc0345mPNAkAIzaSyCChtVm4UlxD4',
-  MONGO = 'localhost:27017/radius-dev',
+  AD_HOST = '',
+  AD_KEY = '',
+  MONGO = '',
   NODE_ENV = 'development',
-  SECRET_KEY = 'FunnyTreeBlackDeceive1'
+  SECRET_KEY = ''
 } = process.env;
 
 module.exports = {
